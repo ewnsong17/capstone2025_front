@@ -1,11 +1,14 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import { View, Text, Image, StyleSheet } from 'react-native';
 
 export default function App() {
   return (
     <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
+      <Text>첫화면</Text>
+      <Image
+        source={require('./assets/logo.png')} // 이미지 경로 설정
+        style={styles.logo}
+      />
     </View>
   );
 }
@@ -13,8 +16,12 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logo: {
+    width: 200, // 이미지 크기 조정
+    height: 200,
+    marginTop: 20,
   },
 });
