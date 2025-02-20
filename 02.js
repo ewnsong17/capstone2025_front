@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import Font from './font';
+import Header from './Header';  // 공통 헤더 컴포넌트 불러오기
+import MyPage from './04';  // 마이페이지 UI
 
 export default function App() {
     const fontLoaded = Font();
@@ -9,15 +11,10 @@ export default function App() {
     const [selectedPlace, setSelectedPlace] = useState(null); // 선택된 장소 상태
     const [selectedDate, setSelectedDate] = useState(null); // 선택된 날짜 상태
     const [showDatePicker, setShowDatePicker] = useState(false);
-    const [searchQuery, setSearchQuery] = useState(""); // 검색어 상태 추가
 
     if (!fontLoaded) {
         return <Text>Loading...</Text>;
     }
-
-    const handleSearch = () => {
-        Alert.alert("알림", `\"${searchQuery}\"이(가) 입력되었습니다`);
-    };
 
     const handlePopupClose = () => {
         setShowPopup(false); // 팝업 닫기
@@ -35,23 +32,6 @@ export default function App() {
 
     return (
         <ScrollView style={styles.container}>
-            {/* 상단바 */}
-            <View style={styles.header}>
-                <Image source={require('./assets/logo.png')} style={styles.logo} />
-
-                {/* 검색 */}
-                <TextInput
-                    style={styles.searchInput}
-                    placeholder="검색어를 입력하세요..."
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                />
-                <TouchableOpacity onPress={handleSearch}>
-                    <Image source={require('./assets/search.png')} style={styles.icon} />
-                </TouchableOpacity>
-
-                <Image source={require('./assets/myInform.png')} style={styles.icon} />
-            </View>
 
             {/* 슬라이더 */}
             <View style={styles.sliderContainer}>
@@ -355,15 +335,5 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         borderRadius: 5,
         marginTop: 10,
-    },
-    searchInput: {
-        flex: 1,
-        height: 40,
-        backgroundColor: 'white',
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#ddd',
-        paddingHorizontal: 8,
-        marginLeft: 10,
     },
 });
