@@ -171,14 +171,7 @@ export default function App() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingTop: 10,
-        paddingHorizontal: 10,
-        height: 80,
+        backgroundColor:'#F0F8FF'
     },
     logo: {
         width: 50,
@@ -279,13 +272,6 @@ const styles = StyleSheet.create({
     popupText: {
         fontSize: 18,
         color: 'black',
-    },
-    resetButton: {
-        backgroundColor: 'lightgray',
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        borderRadius: 5,
-        marginTop: 10,
     },
     overlay: {
         position: 'absolute',
