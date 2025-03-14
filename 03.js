@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, TextInput, Keyboard, TouchableWithoutFeedback } from 'react-native';
 
 const packageImages = {
     '콘서트': [require('./assets/package 1.png'), require('./assets/package 2.png'), require('./assets/package 3.png')],
@@ -24,12 +24,18 @@ export default function SearchResults() {
         setMaxPrice('');
     };
 
+    const handleResetPlace = () => { // 초기화 버튼
+        setSelectedFilterCategory(null);
+        setMinPrice('');
+        setMaxPrice('');
+    };
+
     return (
         <View style={styles.container}>
 
             {/* 선택한 여행 장소 */}
             <View style={styles.selectedPlaceContainer}>
-                <Text style={styles.selectedPlaceText}>선택한 여행 장소</Text>
+                <Text style={styles.text}>Travel Place</Text>
                 <TouchableOpacity onPress={() => setShowFilter(true)}>
                     <Image source={require('./assets/filter.png')} style={styles.filterIcon} />
                 </TouchableOpacity>
@@ -43,7 +49,8 @@ export default function SearchResults() {
                         style={[styles.categoryButton, selectedCategory === category && styles.selectedCategory]}
                         onPress={() => setSelectedCategory(category)}
                     >
-                        <Text style={styles.categoryText}>{category}</Text>
+                        <Text style={[styles.text, { fontWeight: 'normal' }]}>{category}</Text>
+
                     </TouchableOpacity>
                 ))}
             </View>
@@ -59,59 +66,68 @@ export default function SearchResults() {
 
             {/* 필터 팝업 */}
             {showFilter && (
-                <View style={styles.filterContainer}>
-                    <View style={styles.filterHeader}>
-                        <Text style={styles.filterTitle}>필터</Text>
-                        <TouchableOpacity style={styles.resetButton}>
-                            <Text style={styles.resetText}>초기화</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setShowFilter(false)} style={styles.closeButton}>
-                            <Text style={styles.closeText}>✕</Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* 공연 종류 선택 */}
-                    <Text style={styles.filterLabel}>공연 종류</Text>
-                    <View style={styles.filterCategoryContainer}>
-                        {categories.map((category) => (
-                            <TouchableOpacity
-                                key={category}
-                                style={[
-                                    styles.filterCategoryButton,
-                                    selectedFilterCategory === category && styles.selectedCategory
-                                ]}
-                                onPress={() => setSelectedFilterCategory(category)}
-                            >
-                                <Text style={styles.categoryText}>{category}</Text>
+                <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+                    <View style={styles.filterContainer}>
+                        <View style={styles.filterHeader}>
+                            <Text style={styles.filterTitle}>필터</Text>
+                            <TouchableOpacity onPress={() => setShowFilter(false)} style={styles.closeButton}>
+                                <Text style={styles.closeText}>✕</Text>
                             </TouchableOpacity>
-                        ))}
-                    </View>
+                        </View>
 
-                    {/* 가격 입력 */}
-                    <Text style={styles.filterLabel}>가격 (성인 1인당)</Text>
-                    <View style={styles.priceInputContainer}>
-                        <TextInput
-                            style={styles.priceInput}
-                            placeholder="금액입력"
-                            keyboardType="numeric"
-                            value={minPrice}
-                            onChangeText={setMinPrice}
-                        />
-                        <Text style={styles.priceSeparator}> - </Text>
-                        <TextInput
-                            style={styles.priceInput}
-                            placeholder="금액입력"
-                            keyboardType="numeric"
-                            value={maxPrice}
-                            onChangeText={setMaxPrice}
-                        />
-                    </View>
+                        {/* 공연 종류 선택 */}
+                        <View style={styles.filterBackground}>
+                            <Text style={[styles.text, { alignSelf: 'flex-start', marginBottom: 10 }]}>공연 종류</Text>
+                            <View style={styles.filterCategoryContainer}>
+                                {categories.map((category) => (
+                                    <TouchableOpacity
+                                        key={category}
+                                        style={[
+                                            styles.filterCategoryButton,
+                                            selectedFilterCategory === category && styles.selectedCategory
+                                        ]}
+                                        onPress={() => setSelectedFilterCategory(category)}
+                                    >
+                                        <Text style={[styles.text, { fontWeight: 'normal', fontSize: 13 }]}>{category}</Text>
 
-                    {/* 필터 적용 버튼 */}
-                    <TouchableOpacity style={styles.applyFilterButton} onPress={applyFilter}>
-                        <Text style={styles.applyFilterText}>필터 적용</Text>
-                    </TouchableOpacity>
-                </View>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        </View>
+
+                        {/* 가격 입력 */}
+                        <View style={styles.filterBackground}>
+                            <Text style={[styles.text, { alignSelf: 'flex-start', marginBottom: 10 }]}>가격</Text>
+                            <View style={styles.priceInputContainer}>
+                                <TextInput
+                                    style={styles.priceInput}
+                                    placeholder="최소 금액"
+                                    keyboardType="numeric"
+                                    value={minPrice}
+                                    onChangeText={setMinPrice}
+                                />
+                                <Text style={styles.priceSeparator}>     -     </Text>
+                                <TextInput
+                                    style={styles.priceInput}
+                                    placeholder="최대 금액"
+                                    keyboardType="numeric"
+                                    value={maxPrice}
+                                    onChangeText={setMaxPrice}
+                                />
+                            </View>
+                        </View>
+
+                        {/* 필터 적용 버튼 */}
+                        <TouchableOpacity style={styles.applyFilterButton} onPress={applyFilter}>
+                            <Text style={styles.text}>필터 적용</Text>
+                        </TouchableOpacity>
+
+                        {/* 초기화 버튼 */}
+                        <TouchableOpacity style={styles.resetButton} onPress={handleResetPlace}>
+                            <Text style={[styles.text, { fontWeight: 'normal' }]}>초기화</Text>
+                        </TouchableOpacity>
+                    </View>
+                </TouchableWithoutFeedback>
             )}
         </View>
     );
@@ -144,20 +160,22 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        backgroundColor: '#5A7E99',
+        backgroundColor: '#87CEEB',
         padding: 15,
         margin: 10,
         borderRadius: 10,
     },
-    selectedPlaceText: {
-        color: 'white',
-        fontSize: 16,
+    text: {
+        color: 'black',
+        textAlign: 'center',
+        fontSize: 15,
         fontWeight: 'bold',
+        fontFamily: 'Arial',
     },
     filterIcon: {
         width: 25,
         height: 25,
-        tintColor: 'white',
+        tintColor: 'black',
     },
     categoryContainer: {
         flexDirection: 'row',
@@ -165,22 +183,22 @@ const styles = StyleSheet.create({
         padding: 10,
     },
     categoryButton: {
-        backgroundColor: '#ADD8E6',
+        backgroundColor: '#87CEEB',
         paddingVertical: 10,
         paddingHorizontal: 20,
         borderRadius: 10,
     },
     selectedCategory: {
-        backgroundColor: '#4682B4',
+        backgroundColor: '#FFC0CB',
     },
     resultsContainer: {
         margin: 10,
         padding: 10,
-        backgroundColor: '#3E5C76',
+        backgroundColor: '#87CEEB',
         borderRadius: 10,
     },
     packageItem: {
-        backgroundColor: '#B0E0E6',
+        backgroundColor: '#F0F8FF',
         padding: 10,
         marginBottom: 10,
         borderRadius: 10,
@@ -198,14 +216,17 @@ const styles = StyleSheet.create({
         top: '20%',
         left: '5%',
         width: '90%',
-        backgroundColor: '#3C5A6F',
+        backgroundColor: 'white',
+        borderRadius: 10,
+        borderColor: '#FFC0CBCC',
+        borderWidth: 5,
         padding: 20,
         borderRadius: 15,
     },
     filterTitle: {
         fontSize: 20,  
         fontWeight: "bold", 
-        color: "#FFFFFF",  
+        color: "black",  
     },
     filterHeader: {
         flexDirection: 'row',
@@ -214,18 +235,14 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     resetButton: {
-        backgroundColor: "#B3E5FC",
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        borderRadius: 10,
-    },
-    resetText: {
-        fontSize: 14,
-        fontWeight: "bold",
-        color: "#000",
+        backgroundColor: '#FFC0CBCC',
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 5,
+        marginTop: 10,
     },
     closeButton: {
-        backgroundColor: "#FFF",
+        backgroundColor: "#FFC0CB",
         width: 30,
         height: 30,
         borderRadius: 15,
@@ -237,12 +254,13 @@ const styles = StyleSheet.create({
         fontWeight: "bold",
         color: "#000",
     },
-    filterLabel: {
-        color: "white",
-        fontSize: 16,
-        fontWeight: "bold",
-        marginTop: 10,
-    },
+    filterBackground: {
+        backgroundColor: '#87CEEB',
+        padding: 15,
+        borderRadius: 10,
+        marginTop: 20,
+        },
+
     filterCategoryContainer: {
         flexDirection: "row",
         justifyContent: "space-around",
@@ -262,7 +280,7 @@ const styles = StyleSheet.create({
     },
     priceInput: {
         backgroundColor: "#B3E5FC",
-        width: 100,
+        width: 110,
         height: 40,
         textAlign: "center",
         borderRadius: 10,
@@ -273,9 +291,5 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         alignItems: "center",
         marginTop: 20,
-    },
-    applyFilterText: {
-        fontSize: 16,
-        fontWeight: "bold",
     },
 });

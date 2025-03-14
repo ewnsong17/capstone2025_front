@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import Font from './font';
-import Header from './Header';  // 공통 헤더 컴포넌트 불러오기
-import MyPage from './04';  // 마이페이지 UI
 
-export default function App() {
+const { width, height } = Dimensions.get('window'); // 화면 크기 가져오기
+const IMAGE_WIDTH = width; // 이미지 너비를 화면 전체로 설정
+const IMAGE_HEIGHT = height * 0.4; // 이미지 높이를 화면 높이의 40%로 설정
+
+const App = () => {
     const fontLoaded = Font();
     const [showPopup, setShowPopup] = useState(false);
     const [selectedPlace, setSelectedPlace] = useState(null); // 선택된 장소 상태
@@ -30,22 +32,34 @@ export default function App() {
         setShowPopup(false);
     };
 
-    return (
-        <ScrollView style={styles.container}>
+    // 예시 데이터
+    const photos = [
+        { id: 1, url: require('./assets/p1.jpg') },
+        { id: 2, url: require('./assets/p2.jpg') },
+        { id: 3, url: require('./assets/p3.jpg') },
+        { id: 4, url: require('./assets/p4.jpg') },
+        { id: 5, url: require('./assets/p5.jpg') },
+    ];
 
-            {/* 슬라이더 */}
-            <View style={styles.sliderContainer}>
-                <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-                    <Image source={require('./assets/p1.jpg')} style={styles.sliderImage} />
-                    <Image source={require('./assets/p2.jpg')} style={styles.sliderImage} />
-                    <Image source={require('./assets/p3.jpg')} style={styles.sliderImage} />
-                    <Image source={require('./assets/p4.jpg')} style={styles.sliderImage} />
-                    <Image source={require('./assets/p5.jpg')} style={styles.sliderImage} />
-                </ScrollView>
-            </View>
+  const bottomPhotos = [
+        { id: 6, url: require('./assets/r1.jpg') },
+        { id: 7, url: require('./assets/r2.jpg') },
+        { id: 8, url: require('./assets/r3.jpg') },
+    ];
 
-            {/* PLACE & DATE 버튼 */}
-            <View style={styles.buttonContainer}>
+  return (
+    <ScrollView contentContainerStyle={styles.container}>
+      {/* 가로 스크롤 가능한 상단 사진 영역 */}
+      <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} style={styles.photoScrollContainer}>
+        {photos.map((photo) => (
+          <View key={photo.id} style={styles.photoArea}>
+            <Image source={photo.url} style={styles.photoImage} resizeMode="cover" />
+          </View>
+        ))}
+      </ScrollView>
+      
+      {/* PLACE & DATE 버튼 */}
+      <View style={styles.buttonContainer}>
                 {/* PLACE 버튼 */}
                 <TouchableOpacity
                     style={styles.button}
@@ -143,197 +157,193 @@ export default function App() {
                 <TouchableOpacity style={styles.overlay} onPress={handlePopupClose} />
             )}
 
-            {/* 나머지 페이지 내용 */}
-            <View style={styles.searchButtonContainer}>
-                <TouchableOpacity style={styles.buttonWithoutBack} onPress={() => alert('Search clicked!')}>
-                    <Image source={require('./assets/plane.png')} style={styles.searchImage} />
-                </TouchableOpacity>
-            </View>
+      
+      {/* 나머지 페이지 내용 */}
+      <View style={styles.searchButtonContainer}>
+        <TouchableOpacity style={styles.buttonWithoutBack} onPress={() => alert('Search clicked!')}>
+          <Image source={require('./assets/plane.png')} style={styles.searchImage} />
+        </TouchableOpacity>
+      </View>
 
-            <View style={styles.planButtonContainer}>
-                <TouchableOpacity style={styles.button} onPress={() => alert('Plan your trip clicked!')}>
-                    <Text style={styles.text}>Planning Travel with...</Text>
-                    <Text style={[styles.text, { fontSize: 20 }]}>A I</Text>
-                </TouchableOpacity>
-            </View>
-
-            <View style={styles.sliderContainer}>
-                <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-                    <Image source={require('./assets/r1.jpg')} style={styles.sliderImage} />
-                    <Image source={require('./assets/r2.jpg')} style={styles.sliderImage} />
-                    <Image source={require('./assets/r3.jpg')} style={styles.sliderImage} />
-                </ScrollView>
-            </View>
-        </ScrollView>
-    );
-}
+      <View style={styles.planButtonContainer}>
+        <TouchableOpacity style={styles.button} onPress={() => alert('Plan your trip clicked!')}>
+          <Text style={styles.text}>Planning Travel with...</Text>
+          <Text style={[styles.text, { fontSize: 20 }]}>A I</Text>
+        </TouchableOpacity>
+      </View>
+      
+      {/* 가로 스크롤 가능한 하단 사진 영역 */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photoScrollContainer}>
+        {bottomPhotos.map((photo) => (
+          <View key={photo.id} style={styles.photoArea}>
+            <Image source={photo.url} style={styles.photoImage} resizeMode="cover" />
+          </View>
+        ))}
+      </ScrollView>
+    </ScrollView>
+  );
+};
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    header: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingTop: 10,
-        paddingHorizontal: 10,
-        height: 80,
-    },
-    logo: {
-        width: 50,
-        height: 50,
-    },
-    rightIcons: {
-        flexDirection: 'row',
-    },
-    icon: {
-        width: 40,
-        height: 40,
-        marginLeft: 10,
-    },
-    sliderContainer: {
-        marginHorizontal: 20,
-        height: 250,
-        borderWidth: 2,
-        borderColor: 'skyblue',
-        borderRadius: 10,
-    },
-    sliderImage: {
-        width: 800,
-        height: 250,
-        marginRight: 10,
-    },
-    buttonContainer: {
-        flexDirection: 'column',
-        marginHorizontal: 20,
-        marginTop: 20,
-        marginBottom: 20,
-        borderWidth: 2,
-        borderColor: 'skyblue',
-        borderRadius: 10,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 6,
-        elevation: 5,
-        padding: 10,
-    },
-    button: {
-        backgroundColor: 'pink',
-        marginBottom: 10,
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        borderRadius: 5,
-        width: '100%',
-    },
-    buttonWithoutBack: {
-        marginBottom: 10,
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        borderRadius: 5,
-        width: '100%',
-    },
-    text: {
-        color: 'black',
-        textAlign: 'center',
-        fontSize: 15,
-        fontWeight: 'bold',
-        fontFamily: 'Arial',
-    },
-    searchButtonContainer: {
-        alignSelf: 'center',
-        width: '30%',
-    },
-    searchImage: {
-        width: '100%',
-        height: 40,
-    },
-    planButtonContainer: {
-        alignSelf: 'center',
-        width: '80%',
-        marginTop: 5,
-        marginBottom: 10,
-    },
-    popup: {
-        position: 'absolute',
-        top: 100,
-        left: 0,
-        right: 0,
-        backgroundColor: 'white',
-        padding: 20,
-        borderRadius: 10,
-        borderColor: 'skyblue',
-        borderWidth: 2,
-        alignItems: 'center',
-        zIndex: 10,
-    },
-    popupTitle: {
-        fontSize: 20,
-        marginBottom: 15,
-        fontWeight: 'bold',
-    },
-    popupButton: {
-        marginBottom: 10,
-    },
-    popupText: {
-        fontSize: 18,
-        color: 'black',
-    },
-    resetButton: {
-        backgroundColor: 'lightgray',
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        borderRadius: 5,
-        marginTop: 10,
-    },
-    overlay: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.3)',
-        zIndex: 5,
-    },
-    placeGroup: {
-        width: '100%',
-        borderWidth: 1,
-        borderColor: 'skyblue',
-        borderRadius: 10,
-        marginBottom: 15,
-        padding: 10,
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-    },
-    groupTitle: {
-        fontSize: 13,
-        fontWeight: 'bold',
-        marginBottom: 10,
-        textAlign: 'left',
-        width: '100%',
-    },
-    popupButton: {
-        backgroundColor: 'white',
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        marginBottom: 10,
-        borderRadius: 5,
-        borderWidth: 1,
-        borderColor: 'pink',
-        width: '30%',
-    },
-    popupText: {
-        fontSize: 14,
-        color: 'black',
-        textAlign: 'center',
-    },
-    resetButton: {
-        backgroundColor: 'rgba(255, 192, 203, 0.8)',
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        borderRadius: 5,
-        marginTop: 10,
-    },
+  container: {
+    alignItems: 'center',
+    backgroundColor: '#F0F8FF',
+    paddingVertical: 20,
+  },
+  photoScrollContainer: {
+    width: '100%',
+    height: IMAGE_HEIGHT + 20,
+    marginBottom: 30,
+  },
+  photoArea: {
+    width: IMAGE_WIDTH,
+    height: IMAGE_HEIGHT,
+    backgroundColor: '#ccc',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 10,
+    marginHorizontal: 10,
+  },
+  photoImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 10,
+    resizeMode: 'cover',
+  },
+  buttonGroup: {
+    backgroundColor: '#F0F8FF',
+    padding: 15,
+    borderRadius: 20,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  button: {
+    width: 350,
+    padding: 15,
+    backgroundColor: '#87CEEB',
+    alignItems: 'center',
+    borderRadius: 15,
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+  },
+  buttonText: {
+    color: '#000',  
+    fontSize: 18,  
+    fontWeight: 'bold',  
+  },
+  iconContainer: {
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  searchButtonContainer: {
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  searchImage: {
+    width: 70, 
+    height: 80,
+    resizeMode: 'contain',
+  },
+  textButton: {
+    width: 250,
+    padding: 20,
+    backgroundColor: '#87CEEB',
+    alignItems: 'center',
+    borderRadius: 15,
+    marginBottom: 30,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+  },
+  buttonImage: {
+    width: 50,
+    height: 50,
+    resizeMode: 'contain',
+  },
+  imageButtonText: {
+    color: '#000',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  popup: {
+    position: 'absolute',
+    top: 100,
+    left: 0,
+    right: 0,
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    borderColor: '#87CEEB',
+    borderWidth: 2,
+    alignItems: 'center',
+    zIndex: 10,
+},
+popupTitle: {
+    fontSize: 20,
+    marginBottom: 15,
+    fontWeight: 'bold',
+},
+popupButton: {
+    marginBottom: 10,
+},
+popupText: {
+    fontSize: 18,
+    color: 'black',
+},
+overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#0000004D',
+    zIndex: 5,
+},
+placeGroup: {
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#87CEEB',
+    borderRadius: 10,
+    marginBottom: 15,
+    padding: 10,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+},
+groupTitle: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'left',
+    width: '100%',
+},
+popupButton: {
+    backgroundColor: 'white',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    marginBottom: 10,
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: '#FFC0CB',
+    width: '30%',
+},
+popupText: {
+    fontSize: 14,
+    color: 'black',
+    textAlign: 'center',
+},
+resetButton: {
+    backgroundColor: '#FFC0CBCC',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    marginTop: 10,
+},
 });
+
+export default App;

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity, Animated, Dimensions } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, Animated, Dimensions, TouchableWithoutFeedback } from 'react-native';
 
 const screenWidth = Dimensions.get('window').width; // 화면 너비
 
@@ -25,50 +25,64 @@ export default function MyPage({ onClose, isVisible }) {
     }, [isVisible]);
 
     return (
-        <Animated.View style={[styles.container, { transform: [{ translateX: slideAnim }] }]}>
-            {/* 닫기 버튼 */}
-            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-                <Text style={styles.closeText}>✕</Text>
-            </TouchableOpacity>
-
-            {/* 프로필 정보 */}
-            <View style={styles.profileContainer}>
-                <Image source={require('./assets/myInform.png')} style={styles.profileImage} />
-                <View style={styles.profileTextContainer}>
-                    <Text style={styles.profileName}>Name</Text>
-                    <TouchableOpacity>
-                        <Text style={styles.editProfile}>프로필 편집 {'>'}</Text>
+        <TouchableWithoutFeedback onPress={onClose}>
+            {/* 하나의 최상위 요소로 묶음 */}
+            <View style={styles.overlay}>
+                <Animated.View style={[styles.container, { transform: [{ translateX: slideAnim }] }]}>
+                    {/* 닫기 버튼 */}
+                    <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+                        <Text style={styles.closeText}>✕</Text>
                     </TouchableOpacity>
-                </View>
-            </View>
 
-            {/* 메뉴 섹션 */}
-            <View style={styles.menuContainer}>
-                <TouchableOpacity style={styles.menuItem}>
-                    <Text style={styles.menuText}>내 여행</Text>
-                    <Image source={require('./assets/plane.png')} style={styles.menuIcon} />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.menuItem}>
-                    <Text style={styles.menuText}>내 저장</Text>
-                    <Image source={require('./assets/heart.png')} style={styles.menuIcon} />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.menuItem}>
-                    <Text style={styles.menuText}>내 리뷰</Text>
-                    <Image source={require('./assets/review.png')} style={styles.menuIcon} />
-                </TouchableOpacity>
+                    {/* 프로필 정보 */}
+                    <View style={styles.profileContainer}>
+                        <Image source={require('./assets/myInform.png')} style={styles.profileImage} />
+                        <View style={styles.profileTextContainer}>
+                            <Text style={styles.profileName}>Name</Text>
+                            <TouchableOpacity>
+                                <Text style={styles.editProfile}>프로필 편집 {'>'}</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+
+                    {/* 메뉴 섹션 */}
+                    <View style={styles.menuContainer}>
+                        <TouchableOpacity style={styles.menuItem}>
+                            <Text style={styles.menuText}>내 여행</Text>
+                            <Image source={require('./assets/plane.png')} style={styles.menuIcon} />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.menuItem}>
+                            <Text style={styles.menuText}>내 저장</Text>
+                            <Image source={require('./assets/heart.png')} style={styles.menuIcon} />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.menuItem}>
+                            <Text style={styles.menuText}>내 리뷰</Text>
+                            <Image source={require('./assets/review.png')} style={styles.menuIcon} />
+                        </TouchableOpacity>
+                    </View>
+                </Animated.View>
             </View>
-        </Animated.View>
+        </TouchableWithoutFeedback>
     );
 }
 
 const styles = StyleSheet.create({
+    overlay: {
+        flex: 1,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: '#00000080', // 배경을 어두운 반투명으로 덮기
+    },
     container: {
         position: 'absolute',
         top: 0,
         right: 0,
         width: '75%',  // 화면의 75%만 차지
         height: '100%',
-        backgroundColor: '#3E5C76',
+        backgroundColor: '#E6E6FA',
         borderTopLeftRadius: 20,
         borderBottomLeftRadius: 20,
         padding: 20,
@@ -81,14 +95,15 @@ const styles = StyleSheet.create({
     },
     closeText: {
         fontSize: 24,
-        color: 'white',
+        color: '#87CEEB',
     },
     profileContainer: {
         flexDirection: 'row',
         alignItems: 'center',
+        marginTop: 30,
         marginBottom: 20,
         borderBottomWidth: 1,
-        borderBottomColor: 'white',
+        borderBottomColor: '#87CEEB',
         paddingBottom: 10,
     },
     profileImage: {
@@ -96,7 +111,7 @@ const styles = StyleSheet.create({
         height: 80,
         borderRadius: 40,
         borderWidth: 2,
-        borderColor: 'white',
+        borderColor: '#87CEEB',
     },
     profileTextContainer: {
         marginLeft: 15,
@@ -104,11 +119,11 @@ const styles = StyleSheet.create({
     profileName: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: 'white',
+        color: '#000000',
     },
     editProfile: {
         fontSize: 14,
-        color: '#ADD8E6',
+        color: '#808080',
         marginTop: 5,
     },
     menuContainer: {
@@ -120,11 +135,13 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         paddingVertical: 15,
         borderBottomWidth: 1,
-        borderBottomColor: 'white',
+        borderBottomColor: '#87CEEB',
     },
     menuText: {
-        fontSize: 18,
-        color: 'white',
+    color: '#000000',
+    fontSize: 18,
+    fontWeight: 'bold',
+    fontFamily: 'Arial',
     },
     menuIcon: {
         width: 40,

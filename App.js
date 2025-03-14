@@ -33,6 +33,7 @@ export default function App() {
                 onOpenMyPage={() => setShowMyPage(true)} 
             />
 
+
             {/* 현재 화면 표시 */}
             {currentScreen === 'main' && <MainPage />}
             {currentScreen === 'search' && <SearchResults />}
