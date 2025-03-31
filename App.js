@@ -5,6 +5,7 @@ import Header from './Header';
 import MainPage from './02';  // 메인 페이지 (02.js)
 import SearchResults from './03'; // 검색 결과 페이지 (03.js)
 import MyPage from './04'; // 마이페이지 (04.js)
+import AITravel from './AITravel';
 
 export default function App() {
     const [showSplash, setShowSplash] = useState(true); // 스플래시 화면 상태
@@ -29,14 +30,15 @@ export default function App() {
             {/* 공통 헤더 */}
             <Header 
                 onLogoPress={() => setCurrentScreen('main')} 
-                onSearchPress={() => setCurrentScreen('search')} 
+                onSearchPress={() => setCurrentScreen('search')}
                 onOpenMyPage={() => setShowMyPage(true)} 
             />
 
 
             {/* 현재 화면 표시 */}
-            {currentScreen === 'main' && <MainPage />}
+            {currentScreen === 'main' && <MainPage setCurrentScreen={setCurrentScreen} />}
             {currentScreen === 'search' && <SearchResults />}
+            {currentScreen === 'AITravel' && <AITravel />}
 
             {/* 마이페이지 (04.js) - 오른쪽에서 슬라이드 */}
             {showMyPage && <MyPage isVisible={showMyPage} onClose={() => setShowMyPage(false)} />}

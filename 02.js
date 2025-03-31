@@ -7,7 +7,7 @@ const { width, height } = Dimensions.get('window'); // 화면 크기 가져오�
 const IMAGE_WIDTH = width; // 이미지 너비를 화면 전체로 설정
 const IMAGE_HEIGHT = height * 0.4; // 이미지 높이를 화면 높이의 40%로 설정
 
-const App = () => {
+const App = ({setCurrentScreen}) => {
     const fontLoaded = Font();
     const [showPopup, setShowPopup] = useState(false);
     const [selectedPlace, setSelectedPlace] = useState(null); // 선택된 장소 상태
@@ -166,7 +166,7 @@ const App = () => {
       </View>
 
       <View style={styles.planButtonContainer}>
-        <TouchableOpacity style={styles.button} onPress={() => alert('Plan your trip clicked!')}>
+        <TouchableOpacity style={styles.button} onPress={() => setCurrentScreen('AITravel')}>
           <Text style={styles.text}>Planning Travel with...</Text>
           <Text style={[styles.text, { fontSize: 20 }]}>A I</Text>
         </TouchableOpacity>
