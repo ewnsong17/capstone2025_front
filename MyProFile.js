@@ -81,7 +81,7 @@ export default function MyProFile({ navigation }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#EAF4FF',
+        backgroundColor: '#F0F8FF',
         alignItems: 'center',
         justifyContent: 'center',
     },

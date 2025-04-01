@@ -11,7 +11,6 @@ import MyProFile from './MyProFile';
 import AITravel from './AITravel';
 import { ProfileProvider } from './ProFileContext';
 
-
 const Stack = createStackNavigator();
 
 function MainApp({navigation}) {
@@ -20,16 +19,12 @@ function MainApp({navigation}) {
 
     return (
         <View style={styles.container}>
-
-            {/* 공통 헤더 */}
-            <Header 
-                onLogoPress={() => setCurrentScreen('main')} 
+            <Header
+                onLogoPress={() => setCurrentScreen('main')}
                 onSearchPress={() => setCurrentScreen('search')}
-                onOpenMyPage={() => setShowMyPage(true)} 
+                onOpenMyPage={() => setShowMyPage(true)}
             />
 
-
-            {/* 현재 화면 표시 */}
             {currentScreen === 'main' && <MainPage setCurrentScreen={setCurrentScreen} />}
             {currentScreen === 'search' && <SearchResults />}
             {currentScreen === 'AITravel' && <AITravel />}
