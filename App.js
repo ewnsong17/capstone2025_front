@@ -1,32 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
-import SplashScreen from './01'; // 스플래시 화면 (01.js)
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import SplashScreen from './01';
 import Header from './Header';
-import MainPage from './02';  // 메인 페이지 (02.js)
-import SearchResults from './03'; // 검색 결과 페이지 (03.js)
-import MyPage from './04'; // 마이페이지 (04.js)
+import MainPage from './02';
+import SearchResults from './03';
+import MyPage from './04';
+import MyProFile from './MyProFile'; 
 import AITravel from './AITravel';
+import { ProfileProvider } from './ProFileContext';
 
-export default function App() {
-    const [showSplash, setShowSplash] = useState(true); // 스플래시 화면 상태
-    const [currentScreen, setCurrentScreen] = useState('main'); // 기본 화면: 메인(02.js)
-    const [showMyPage, setShowMyPage] = useState(false); // 마이페이지 슬라이드 상태
 
-    useEffect(() => {
-        // 2초 후에 스플래시 화면 숨기고 메인 화면으로 이동
-        const timer = setTimeout(() => {
-            setShowSplash(false);
-        }, 2000);
+const Stack = createStackNavigator();
 
-        return () => clearTimeout(timer); // 메모리 누수 방지
-    }, []);
-
-    if (showSplash) {
-        return <SplashScreen />; // 스플래시 화면 표시
-    }
+function MainApp({navigation}) {
+    const [currentScreen, setCurrentScreen] = useState('main');
+    const [showMyPage, setShowMyPage] = useState(false);
 
     return (
         <View style={styles.container}>
+
             {/* 공통 헤더 */}
             <Header 
                 onLogoPress={() => setCurrentScreen('main')} 
@@ -40,9 +34,40 @@ export default function App() {
             {currentScreen === 'search' && <SearchResults />}
             {currentScreen === 'AITravel' && <AITravel />}
 
-            {/* 마이페이지 (04.js) - 오른쪽에서 슬라이드 */}
-            {showMyPage && <MyPage isVisible={showMyPage} onClose={() => setShowMyPage(false)} />}
+
+            {showMyPage && (
+                <MyPage
+                    isVisible={showMyPage}
+                    onClose={() => setShowMyPage(false)}
+                />
+            )}
         </View>
+    );
+}
+
+export default function App() {
+    const [showSplash, setShowSplash] = useState(true);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setShowSplash(false);
+        }, 2000);
+        return () => clearTimeout(timer);
+    }, []);
+
+    if (showSplash) {
+        return <SplashScreen />;
+    }
+
+    return (
+        <ProfileProvider>
+        <NavigationContainer>
+            <Stack.Navigator screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="MainApp" component={MainApp} />
+                <Stack.Screen name="MyProFile" component={MyProFile} options={{ title: '프로필 편집' }} />
+            </Stack.Navigator>
+        </NavigationContainer>
+        </ProfileProvider>
     );
 }
 

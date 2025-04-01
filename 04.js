@@ -1,10 +1,14 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigation } from '@react-navigation/native';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Animated, Dimensions, TouchableWithoutFeedback } from 'react-native';
+import MyProFile from './MyProFile'; 
 
 const screenWidth = Dimensions.get('window').width; // 화면 너비
 
 export default function MyPage({ onClose, isVisible }) {
+    const navigation = useNavigation();
     const slideAnim = useRef(new Animated.Value(screenWidth)).current; // 초기 위치 (화면 밖)
+    const [isProfileVisible, setIsProfileVisible] = useState(false); 
 
     useEffect(() => {
         if (isVisible) {
@@ -35,15 +39,18 @@ export default function MyPage({ onClose, isVisible }) {
                     </TouchableOpacity>
 
                     {/* 프로필 정보 */}
-                    <View style={styles.profileContainer}>
+                <View style={styles.profileContainer}>
+                    <TouchableOpacity onPress={() => navigation.navigate('MyProFile')}>
                         <Image source={require('./assets/myInform.png')} style={styles.profileImage} />
-                        <View style={styles.profileTextContainer}>
-                            <Text style={styles.profileName}>Name</Text>
-                            <TouchableOpacity>
-                                <Text style={styles.editProfile}>프로필 편집 {'>'}</Text>
-                            </TouchableOpacity>
-                        </View>
+                    </TouchableOpacity>
+
+                    <View style={styles.profileTextContainer}>
+                        <Text style={styles.profileName}>Name</Text>
+                        <TouchableOpacity onPress={() => navigation.navigate('MyProFile')}>
+                            <Text style={styles.editProfile}>프로필 편집 {'>'}</Text>
+                        </TouchableOpacity>
                     </View>
+                </View>
 
                     {/* 메뉴 섹션 */}
                     <View style={styles.menuContainer}>
@@ -60,6 +67,10 @@ export default function MyPage({ onClose, isVisible }) {
                             <Image source={require('./assets/review.png')} style={styles.menuIcon} />
                         </TouchableOpacity>
                     </View>
+                {/* 상세 프로필 모달 */}
+                    {isProfileVisible && (
+                        <MyProFile onClose={() => setIsProfileVisible(false)} />
+                )}
                 </Animated.View>
             </View>
         </TouchableWithoutFeedback>
