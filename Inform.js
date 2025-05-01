@@ -1,14 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Animated, Dimensions, TouchableWithoutFeedback } from 'react-native';
 import MyProFile from './MyProFile'; 
-
+import { ProfileContext } from './ProFileContext'; // Context import
 const screenWidth = Dimensions.get('window').width; // 화면 너비
 
 export default function MyPage({ onClose, isVisible }) {
     const navigation = useNavigation();
     const slideAnim = useRef(new Animated.Value(screenWidth)).current; // 초기 위치 (화면 밖)
     const [isProfileVisible, setIsProfileVisible] = useState(false); 
+    const { name, birthDate, profileImage } = useContext(ProfileContext);
+
 
     useEffect(() => {
         if (isVisible) {
@@ -28,7 +30,10 @@ export default function MyPage({ onClose, isVisible }) {
         }
     }, [isVisible]);
 
+
+
     return (
+        
         <TouchableWithoutFeedback onPress={onClose}>
             {/* 하나의 최상위 요소로 묶음 */}
             <View style={styles.overlay}>
@@ -41,11 +46,15 @@ export default function MyPage({ onClose, isVisible }) {
                     {/* 프로필 정보 */}
                 <View style={styles.profileContainer}>
                     <TouchableOpacity onPress={() => navigation.navigate('MyProFile')}>
-                        <Image source={require('./assets/myInform.png')} style={styles.profileImage} />
+                        <Image 
+                            source={profileImage ? { uri: profileImage } : require('./assets/myInform.png')} 
+                            style={styles.profileImage} 
+                        />
                     </TouchableOpacity>
 
                     <View style={styles.profileTextContainer}>
-                        <Text style={styles.profileName}>Name</Text>
+                        <Text style={styles.profileName}>{name}</Text>
+                        <Text style={styles.editProfile}>생년월일: {birthDate}</Text>
                         <TouchableOpacity onPress={() => navigation.navigate('MyProFile')}>
                             <Text style={styles.editProfile}>프로필 편집 {'>'}</Text>
                         </TouchableOpacity>
