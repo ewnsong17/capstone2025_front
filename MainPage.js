@@ -17,7 +17,7 @@ const App = ({ setCurrentScreen }) => {
   const [packageList, setPackageList] = useState([]);
 
   useEffect(() => {
-    fetch('http://10.0.2.2:3000/main/banners', { method: 'POST' })
+    fetch('http://192.168.219.1:3000/main/banners', { method: 'POST' })
       .then(res => res.json())
       .then(data => {
         if (data.result) {
@@ -30,7 +30,7 @@ const App = ({ setCurrentScreen }) => {
   }, []);
 
   useEffect(() => {
-    fetch('http://10.0.2.2:3000/main/packages', { method: 'POST' })
+    fetch('192.168.219.1:3000/main/packages', { method: 'POST' })
       .then(res => res.json())
       .then(data => {
         if (data.result) {

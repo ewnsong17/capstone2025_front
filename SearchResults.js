@@ -24,7 +24,7 @@ export default function SearchResults() {
         try {
             console.log("🚀 [fetchFilteredPackages] 서버로 요청 시작");
 
-            const response = await fetch('http://10.0.2.2:3000/search/results', {
+            const response = await fetch('http://192.168.219.1:3000/search/results', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -50,7 +50,7 @@ export default function SearchResults() {
 
     const fetchPackages = async (type, price = 9999999) => {
         try {
-            const response = await fetch('http://10.0.2.2:3000/search/results', {
+            const response = await fetch('http://192.168.219.1:3000/search/results', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ type, price })
