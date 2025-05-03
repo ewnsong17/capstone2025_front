@@ -10,6 +10,9 @@ import MyPage from './Inform';
 import MyProFile from './MyProFile'; 
 import AITravel from './AITravel';
 import { ProfileProvider } from './ProFileContext';
+import SignUp from './SignUp';
+import MyTripLists from './MyTripLists';
+import TripDetails from './TripDetails';
 
 const Stack = createStackNavigator();
 
@@ -60,6 +63,9 @@ export default function App() {
             <Stack.Navigator screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="MainApp" component={MainApp} />
                 <Stack.Screen name="MyProFile" component={MyProFile} options={{ title: '프로필 편집' }} />
+                <Stack.Screen name="SignUp" component={SignUp} />
+                <Stack.Screen name="MyTripLists" component={MyTripLists} />
+                <Stack.Screen name="TripDetails" component={TripDetails} />
             </Stack.Navigator>
         </NavigationContainer>
         </ProfileProvider>
