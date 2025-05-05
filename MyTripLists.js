@@ -1,6 +1,32 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 
+// 여행 데이터
+const trips = [
+    {
+        title: 'A 여행',
+        period: '2023-05-01 ~ 2023-05-03',
+        withAI: false
+    },
+    {
+        title: 'B 여행',
+        period: '2023-06-01 ~ 2023-06-05',
+        withAI: true
+    }
+];
+
+// 날짜 계산 함수 (period에서 시작일과 종료일을 계산)
+const calculateDays = (startDate, endDate) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const dayCount = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1; // 시작일과 종료일의 차이를 구하고 1일 추가
+    return Array.from({ length: dayCount }, (_, index) => {
+        const currentDay = new Date(start);
+        currentDay.setDate(currentDay.getDate() + index);
+        return currentDay.toLocaleDateString(); // 각 날짜 반환
+    });
+};
+
 const MyTripLists = ({ navigation }) => {
     return (
         <View style={styles.container}>
@@ -14,22 +40,34 @@ const MyTripLists = ({ navigation }) => {
             <View style={styles.pastTripsSection}>
                 <Text style={styles.pastTripsTitle}>지난 여행</Text>
 
-                {/* 지난 여행 1 */}
-                <View style={styles.tripItem}>
-                    <TouchableOpacity onPress={() => navigation.navigate('TripDetails')}>
-                        <Text style={styles.tripTitle}>A 여행</Text>
-                        <Text style={styles.tripPeriod}>2023년 5월 1일 - 2023년 5월 10일</Text>
-                    </TouchableOpacity>
-                </View>
+                {/* 반복문으로 여행 목록 렌더링 */}
+                {trips.map((trip, index) => {
+                    const [startDate, endDate] = trip.period.split(' - '); // period에서 시작일과 종료일 분리
+                    const days = calculateDays(startDate, endDate); // 날짜 계산
 
-                {/* 지난 여행 2 with AI */}
-                <View style={styles.tripItem}>
-                    <View style={styles.iconContainer}>
-                        <Text style={styles.tripTitleText}>B 여행</Text>
-                        <Image source={require('./assets/aiIcon.png')} style={styles.aiIcon} />
-                    </View>
-                    <Text style={styles.tripPeriod}>2023년 6월 1일 - 2023년 6월 7일</Text>
-                </View>
+                    return (
+                        <TouchableOpacity
+                            key={index}
+                            onPress={() =>
+                                navigation.navigate('TripDetails', {
+                                    tripTitle: trip.title,
+                                    tripPeriod: trip.period,
+                                    tripDays: days // 계산된 날짜 전달
+                                })
+                            }
+                        >
+                            <View style={styles.tripItem}>
+                                <View style={styles.iconContainer}>
+                                    <Text style={styles.tripTitleText}>{trip.title}</Text>
+                                    {trip.withAI && (
+                                        <Image source={require('./assets/aiIcon.png')} style={styles.aiIcon} />
+                                    )}
+                                </View>
+                                <Text style={styles.tripPeriod}>{trip.period}</Text>
+                            </View>
+                        </TouchableOpacity>
+                    );
+                })}
             </View>
         </View>
     );
@@ -45,7 +83,7 @@ const styles = StyleSheet.create({
         marginVertical: 20,
     },
     planButton: {
-        backgroundColor: '#87CEEB',  // 메인 컬러
+        backgroundColor: '#87CEEB',
         paddingVertical: 15,
         paddingHorizontal: 30,
         borderRadius: 10,
@@ -61,7 +99,7 @@ const styles = StyleSheet.create({
     pastTripsTitle: {
         fontSize: 22,
         fontWeight: 'bold',
-        color: '#87CEEB',  // 메인 컬러
+        color: '#87CEEB',
         marginBottom: 10,
     },
     tripItem: {
@@ -98,4 +136,3 @@ const styles = StyleSheet.create({
 });
 
 export default MyTripLists;
-
