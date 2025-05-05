@@ -7,18 +7,23 @@ import Header from './Header';
 import MainPage from './MainPage';
 import SearchResults from './SearchResults';
 import MyPage from './Inform';
-import MyProFile from './MyProFile'; 
+import MyProFile from './MyProFile';
 import AITravel from './AITravel';
 import { ProfileProvider } from './ProFileContext';
+import { ReviewContext, ReviewProvider } from './ReviewContext';
 import SignUp from './SignUp';
 import MyTripLists from './MyTripLists';
 import TripDetails from './TripDetails';
+import TripReservation from './TripReservation';
+import MyReview from './MyReview'
 
 const Stack = createStackNavigator();
 
-function MainApp({navigation}) {
+function MainApp({ navigation }) {
     const [currentScreen, setCurrentScreen] = useState('main');
     const [showMyPage, setShowMyPage] = useState(false);
+    const [selectedDate, setSelectedDate] = useState(null);
+    const [selectedPlace, setSelectedPlace] = useState(null);
 
     return (
         <View style={styles.container}>
@@ -28,10 +33,25 @@ function MainApp({navigation}) {
                 onOpenMyPage={() => setShowMyPage(true)}
             />
 
-            {currentScreen === 'main' && <MainPage setCurrentScreen={setCurrentScreen} />}
+            {currentScreen === 'main' && (
+                <MainPage
+                    setCurrentScreen={setCurrentScreen}
+                    selectedDate={selectedDate}
+                    selectedPlace={selectedPlace}
+                    setSelectedDate={setSelectedDate}
+                    setSelectedPlace={setSelectedPlace}
+                />
+            )}
+
             {currentScreen === 'search' && <SearchResults />}
             {currentScreen === 'AITravel' && <AITravel />}
-
+            {currentScreen === 'TripReservation' && (
+                <TripReservation
+                    selectedDate={selectedDate}
+                    selectedPlace={selectedPlace}
+                />
+            )}
+            {currentScreen === 'MyReview' && <MyReview />}
 
             {showMyPage && (
                 <MyPage
@@ -59,16 +79,21 @@ export default function App() {
 
     return (
         <ProfileProvider>
-        <NavigationContainer>
-            <Stack.Navigator screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="MainApp" component={MainApp} />
-                <Stack.Screen name="MyProFile" component={MyProFile} options={{ title: '프로필 편집' }} />
-                <Stack.Screen name="SignUp" component={SignUp} />
-                <Stack.Screen name="MyTripLists" component={MyTripLists} />
-                <Stack.Screen name="TripDetails" component={TripDetails} />
-            </Stack.Navigator>
-        </NavigationContainer>
+            <ReviewProvider>
+                <NavigationContainer>
+                    <Stack.Navigator screenOptions={{ headerShown: false }}>
+                        <Stack.Screen name="MainApp" component={MainApp} />
+                        <Stack.Screen name="MyProFile" component={MyProFile} />
+                        <Stack.Screen name="SignUp" component={SignUp} />
+                        <Stack.Screen name="MyTripLists" component={MyTripLists} />
+                        <Stack.Screen name="TripDetails" component={TripDetails} />
+                        <Stack.Screen name="TripReservation" component={TripReservation} />
+                        <Stack.Screen name="MyReview" component={MyReview} />
+                    </Stack.Navigator>
+                </NavigationContainer>
+            </ReviewProvider>
         </ProfileProvider>
+
     );
 }
 

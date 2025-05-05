@@ -24,7 +24,7 @@ export default function SearchResults() {
         try {
             console.log("🚀 [fetchFilteredPackages] 서버로 요청 시작");
 
-            const response = await fetch('http://192.168.219.1:3000/search/results', {
+            const response = await fetch('http://192.168.199.146:3000/search/results', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

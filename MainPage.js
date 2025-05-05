@@ -7,17 +7,15 @@ const { width, height } = Dimensions.get('window'); // 화면 크기 가져오�
 const IMAGE_WIDTH = width; // 이미지 너비를 화면 전체로 설정
 const IMAGE_HEIGHT = height * 0.4; // 이미지 높이를 화면 높이의 40%로 설정
 
-const App = ({ setCurrentScreen }) => {
+const App = ({ setCurrentScreen, selectedDate, selectedPlace, setSelectedDate, setSelectedPlace }) => {
   const fontLoaded = Font();
   const [showPopup, setShowPopup] = useState(false);
-  const [selectedPlace, setSelectedPlace] = useState(null); // 선택된 장소 상태
-  const [selectedDate, setSelectedDate] = useState(null); // 선택된 날짜 상태
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [bannerList, setBannerList] = useState([]);
   const [packageList, setPackageList] = useState([]);
 
   useEffect(() => {
-    fetch('http://192.168.219.1:3000/main/banners', { method: 'POST' })
+    fetch('http://192.168.199.146:3000/main/banners', { method: 'POST' })
       .then(res => res.json())
       .then(data => {
         if (data.result) {
@@ -30,7 +28,7 @@ const App = ({ setCurrentScreen }) => {
   }, []);
 
   useEffect(() => {
-    fetch('192.168.219.1:3000/main/packages', { method: 'POST' })
+    fetch('http://192.168.199.146:3000/main/packages', { method: 'POST' })
       .then(res => res.json())
       .then(data => {
         if (data.result) {
@@ -170,13 +168,26 @@ const App = ({ setCurrentScreen }) => {
       )}
 
 
-      {/* 나머지 페이지 내용 */}
-      <View style={styles.searchButtonContainer}>
-        <TouchableOpacity style={styles.buttonWithoutBack} onPress={() => alert('Search clicked!')}>
-          <Image source={require('./assets/plane.png')} style={styles.searchImage} />
-        </TouchableOpacity>
-      </View>
+      {/* 항공 및 숙소 예약 */}
+      <TouchableOpacity
+        style={[
+          styles.buttonWithoutBack,
+          (!selectedPlace || !selectedDate) && { opacity: 0.5 }
+        ]}
+        disabled={!selectedPlace || !selectedDate}
+        onPress={() => setCurrentScreen('TripReservation')}
+      >
+        <Image
+          source={
+            !selectedPlace || !selectedDate
+              ? require('./assets/plane.png')          
+              : require('./assets/plane_fill.png')     
+          }
+          style={styles.searchImage}
+        />
+      </TouchableOpacity>
 
+      {/* ai와 같이 여행계획 세우기 */}
       <View style={styles.planButtonContainer}>
         <TouchableOpacity style={styles.button} onPress={() => setCurrentScreen('AITravel')}>
           <Text style={styles.text}>Planning Travel with...</Text>
