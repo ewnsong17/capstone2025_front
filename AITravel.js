@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   },
   aiMessage: {
     alignSelf: 'flex-start',
-    backgroundColor: 'skyblue',
+    backgroundColor: '#87CEEB',
     padding: 10,
     borderRadius: 10,
     flexDirection: 'row',

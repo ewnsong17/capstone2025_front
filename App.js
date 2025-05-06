@@ -16,6 +16,7 @@ import MyTripLists from './MyTripLists';
 import TripDetails from './TripDetails';
 import TripReservation from './TripReservation';
 import MyReview from './MyReview'
+import NewTripPlans from './NewTripPlans';
 
 const Stack = createStackNavigator();
 
@@ -86,6 +87,7 @@ export default function App() {
                         <Stack.Screen name="MyProFile" component={MyProFile} />
                         <Stack.Screen name="SignUp" component={SignUp} />
                         <Stack.Screen name="MyTripLists" component={MyTripLists} />
+                        <Stack.Screen name="NewTripPlans" component={NewTripPlans} />
                         <Stack.Screen name="TripDetails" component={TripDetails} />
                         <Stack.Screen name="TripReservation" component={TripReservation} />
                         <Stack.Screen name="MyReview" component={MyReview} />

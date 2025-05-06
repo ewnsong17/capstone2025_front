@@ -83,7 +83,7 @@ export default function TripReservation({ selectedDate, selectedPlace }) {
             <View style={styles.sortRow}>
                 <Text style={styles.sortLabel}>정렬기준</Text>
                 <TouchableOpacity style={styles.sortButton} onPress={handleSort}>
-                    <Text style={styles.sortButtonText}>가격순 {sortAsc ? '↓' : '↑'}</Text>
+                    <Text style={styles.sortButtonText}>가격 {sortAsc ? '높은순' : '낮은순'}</Text>
                 </TouchableOpacity>
             </View>
 

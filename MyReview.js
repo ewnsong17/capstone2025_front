@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Modal, TextInput, StyleSheet } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Modal, TextInput, StyleSheet, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { ReviewContext } from './ReviewContext';
 
 export default function MyReview() {
@@ -32,13 +32,13 @@ export default function MyReview() {
 
     const renderItem = ({ item }) => (
         <TouchableOpacity style={styles.card} onPress={() => openModal(item)}>
-          <Text style={styles.cardText}>{item.location} | {item.title}</Text>
-          <Text style={styles.cardContent} numberOfLines={2} ellipsizeMode="tail">
-            {item.content}
-          </Text>
+            <Text style={styles.cardText}>{item.location} | {item.title}</Text>
+            <Text style={styles.cardContent} numberOfLines={2} ellipsizeMode="tail">
+                {item.content}
+            </Text>
         </TouchableOpacity>
-      );
-      
+    );
+
 
     console.log("리뷰 데이터:", reviews);
 
@@ -54,30 +54,30 @@ export default function MyReview() {
             />
 
             <Modal visible={modalVisible} transparent animationType="fade">
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>{selectedReview?.title}</Text>
-                        <TextInput
-                            style={styles.modalInput}
-                            multiline
-                            value={editContent}
-                            onChangeText={setEditContent}
-                        />
+                <TouchableWithoutFeedback onPress={closeModal}>
+                    <View style={styles.modalOverlay}>
+                        <TouchableWithoutFeedback onPress={() => { }}>
+                            <View style={styles.modalContent}>
+                                <Text style={styles.modalTitle}>{selectedReview?.title}</Text>
+                                <TextInput
+                                    style={styles.modalInput}
+                                    multiline
+                                    value={editContent}
+                                    onChangeText={setEditContent}
+                                />
 
-
-                        <View style={styles.buttonRow}>
-                            <TouchableOpacity onPress={handleUpdate} style={styles.modalButton}>
-                                <Text>수정</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity onPress={handleDelete} style={styles.modalButton}>
-                                <Text>삭제</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity onPress={closeModal} style={styles.modalButton}>
-                                <Text>뒤로가기</Text>
-                            </TouchableOpacity>
-                        </View>
+                                <View style={styles.buttonRow}>
+                                    <TouchableOpacity onPress={handleUpdate} style={styles.modalButton}>
+                                        <Text>수정</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity onPress={handleDelete} style={styles.modalButton}>
+                                        <Text>삭제</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </TouchableWithoutFeedback>
                     </View>
-                </View>
+                </TouchableWithoutFeedback>
             </Modal>
         </View>
     );
@@ -86,7 +86,7 @@ export default function MyReview() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#e7f7ff',
+        backgroundColor: 'rgba(230, 230, 250, 0.9)',
         paddingTop: 60,
         paddingHorizontal: 20,
     },
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
         padding: 10,
         textAlignVertical: 'top',
         marginBottom: 15,
-      },
+    },
 
     buttonRow: {
         flexDirection: 'row',

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, TouchableWithoutFeedback, Keyboard } from 'react-native';
 
 export default function SignUp() {
     const [name, setName] = useState('');
@@ -76,7 +75,7 @@ const styles = StyleSheet.create({
     input: {
         width: '100%',
         height: 50,
-        borderColor: '#87CEEB',
+        borderColor: '#ccc',
         borderWidth: 1,
         borderRadius: 5,
         paddingLeft: 10,
@@ -89,6 +88,7 @@ const styles = StyleSheet.create({
         paddingVertical: 15,
         borderRadius: 5,
         alignItems: 'center',
+        marginTop: 10,
     },
     buttonText: {
         color: '#fff',

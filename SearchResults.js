@@ -281,13 +281,13 @@ const styles = StyleSheet.create({
     // 필터 스타일
     filterContainer: {
         position: 'absolute',
-        top: '20%',
+        top: '10%',
         left: '5%',
         width: '90%',
         backgroundColor: 'white',
         borderRadius: 10,
         borderColor: '#FFC0CBCC',
-        borderWidth: 5,
+        borderWidth: 3,
         padding: 20,
         borderRadius: 15,
     },
