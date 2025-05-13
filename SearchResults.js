@@ -1,12 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, TextInput, Keyboard, TouchableWithoutFeedback } from 'react-native';
 
-const packageImages = {
-    '콘서트': [require('./assets/package 1.png'), require('./assets/package 2.png'), require('./assets/package 3.png')],
-    '뮤지컬': [require('./assets/package 4.png'), require('./assets/package 5.png') ,require('./assets/package 9.png')],
-    '스포츠': [require('./assets/package 6.png'), require('./assets/package 7.png'), require('./assets/package 8.png')]
-};
-
 export default function SearchResults() {
     const [selectedCategory, setSelectedCategory] = useState('콘서트'); // 패키지의 카테고리
     const [showFilter, setShowFilter] = useState(false); // 필터 팝업 상태
@@ -15,13 +9,69 @@ export default function SearchResults() {
     const [maxPrice, setMaxPrice] = useState('');
 
     const categories = ['콘서트', '뮤지컬', '스포츠'];
+    const [packageList, setPackageList] = useState([]); // 패키지 리스트 (필터링된 결과를 저장할 상태)
+
+    const fetchFilteredPackages = async () => {
+        if (!selectedFilterCategory || !minPrice || !maxPrice) return;
+
+        const typeMap = {
+            '콘서트': 1,
+            '뮤지컬': 2,
+            '스포츠': 3
+        };
+        const mappedType = typeMap[selectedFilterCategory];
+
+        try {
+            console.log("🚀 [fetchFilteredPackages] 서버로 요청 시작");
+
+            const response = await fetch('http://192.168.199.146:3000/search/results', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: mappedType,
+                    price: maxPrice  // ❗min은 안 쓰니까 max만 보냄
+                })
+            });
+
+            const data = await response.json();
+            console.log("🌐 [fetch] 응답 상태 코드:", response.status);
+            console.log("📦 [fetch] 응답 데이터:", data);
+
+            if (data.result) {
+                setPackageList(data.result_list);
+                console.log("✅ [fetch] 패키지 리스트 상태 업데이트 완료");
+            } else {
+                console.warn("❌ [fetch] 서버 에러:", data.exception);
+            }
+        } catch (error) {
+            console.error("🔥 [fetch] API 요청 실패:", error);
+        }
+    };
+
+    const fetchPackages = async (type, price = 9999999) => {
+        try {
+            const response = await fetch('http://192.168.219.1:3000/search/results', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type, price })
+            });
+
+            const data = await response.json();
+            if (data.result) setPackageList(data.result_list);
+        } catch (err) {
+            console.error('패키지 불러오기 실패:', err);
+        }
+    };
+
+
 
     // 필터 적용 후 닫기 (초기화)
     const applyFilter = () => {
+        console.log("💡 [applyFilter] 필터 적용 버튼 클릭됨");
+        console.log("👉 선택된 카테고리:", selectedFilterCategory);
+        console.log("👉 가격 범위:", minPrice, "-", maxPrice);
+        fetchFilteredPackages();
         setShowFilter(false);
-        setSelectedFilterCategory(null);
-        setMinPrice('');
-        setMaxPrice('');
     };
 
     const handleResetPlace = () => { // 초기화 버튼
@@ -47,21 +97,39 @@ export default function SearchResults() {
                     <TouchableOpacity
                         key={category}
                         style={[styles.categoryButton, selectedCategory === category && styles.selectedCategory]}
-                        onPress={() => setSelectedCategory(category)}
+                        onPress={() => {
+                            setSelectedCategory(category);
+
+                            const typeMap = {
+                                '콘서트': 1,
+                                '뮤지컬': 2,
+                                '스포츠': 3
+                            };
+                            const mappedType = typeMap[category];
+                            fetchPackages(mappedType);
+                        }}
                     >
                         <Text style={[styles.text, { fontWeight: 'normal' }]}>{category}</Text>
-
                     </TouchableOpacity>
                 ))}
             </View>
 
+
             {/* 선택한 카테고리의 패키지 이미지 출력 */}
             <ScrollView style={styles.resultsContainer}>
-                {packageImages[selectedCategory].map((imageSource, index) => (
-                    <View key={index} style={styles.packageItem}>
-                        <Image source={imageSource} style={styles.packageImage} />
-                    </View>
-                ))}
+                {packageList.length === 0 ? (
+                    <Text style={styles.text}>🔎 결과가 없습니다.</Text>
+                ) : (
+                    packageList.map((pkg, index) => {
+                        console.log("🖼 렌더링 중인 패키지:", pkg);
+                        return (
+                            <View key={index} style={styles.packageItem}>
+                                <Text style={styles.text}>{pkg.title}</Text>
+                                <Text>{pkg.price}원</Text>
+                            </View>
+                        );
+                    })
+                )}
             </ScrollView>
 
             {/* 필터 팝업 */}
@@ -160,7 +228,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        backgroundColor: 'skyblue',
+        backgroundColor: '#87CEEB',
         padding: 15,
         margin: 10,
         borderRadius: 10,
@@ -183,18 +251,18 @@ const styles = StyleSheet.create({
         padding: 10,
     },
     categoryButton: {
-        backgroundColor: 'skyblue',
+        backgroundColor: '#87CEEB',
         paddingVertical: 10,
         paddingHorizontal: 20,
         borderRadius: 10,
     },
     selectedCategory: {
-        backgroundColor: 'pink',
+        backgroundColor: '#FFC0CB',
     },
     resultsContainer: {
         margin: 10,
         padding: 10,
-        backgroundColor: 'skyblue',
+        backgroundColor: '#87CEEB',
         borderRadius: 10,
     },
     packageItem: {
@@ -213,20 +281,20 @@ const styles = StyleSheet.create({
     // 필터 스타일
     filterContainer: {
         position: 'absolute',
-        top: '20%',
+        top: '10%',
         left: '5%',
         width: '90%',
         backgroundColor: 'white',
         borderRadius: 10,
-        borderColor: 'rgba(255, 192, 203, 0.8)',
-        borderWidth: 5,
+        borderColor: '#FFC0CBCC',
+        borderWidth: 3,
         padding: 20,
         borderRadius: 15,
     },
     filterTitle: {
-        fontSize: 20,  
-        fontWeight: "bold", 
-        color: "black",  
+        fontSize: 20,
+        fontWeight: "bold",
+        color: "black",
     },
     filterHeader: {
         flexDirection: 'row',
@@ -235,14 +303,14 @@ const styles = StyleSheet.create({
         marginBottom: 10,
     },
     resetButton: {
-        backgroundColor: 'rgba(255, 192, 203, 0.8)',
+        backgroundColor: '#FFC0CBCC',
         paddingVertical: 10,
         paddingHorizontal: 20,
         borderRadius: 5,
         marginTop: 10,
     },
     closeButton: {
-        backgroundColor: "pink",
+        backgroundColor: "#FFC0CB",
         width: 30,
         height: 30,
         borderRadius: 15,
@@ -255,11 +323,11 @@ const styles = StyleSheet.create({
         color: "#000",
     },
     filterBackground: {
-        backgroundColor: 'skyblue',
+        backgroundColor: '#87CEEB',
         padding: 15,
         borderRadius: 10,
         marginTop: 20,
-        },
+    },
 
     filterCategoryContainer: {
         flexDirection: "row",

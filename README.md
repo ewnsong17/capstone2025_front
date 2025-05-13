@@ -4,3 +4,4 @@ React-native (Expo)
 
 start command
 - npx expo start -c
+- npx expo run:android
