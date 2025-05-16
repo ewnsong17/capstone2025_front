@@ -15,7 +15,11 @@ const App = ({ setCurrentScreen, selectedDate, selectedPlace, setSelectedDate, s
   const [packageList, setPackageList] = useState([]);
 
   useEffect(() => {
-    fetch('http://192.168.199.146:3000/main/banners', { method: 'POST' })
+    fetch('http://localhost:3000/main/banners', { method: 'POST',
+             headers: {
+        'Content-Type': 'application.json'
+       }, 
+     })
       .then(res => res.json())
       .then(data => {
         if (data.result) {
@@ -28,7 +32,12 @@ const App = ({ setCurrentScreen, selectedDate, selectedPlace, setSelectedDate, s
   }, []);
 
   useEffect(() => {
-    fetch('http://192.168.199.146:3000/main/packages', { method: 'POST' })
+    fetch('http://localhost:3000/main/packages', {
+       method: 'POST',
+       headers: {
+        'Content-Type': 'application.json'
+       }, 
+      })
       .then(res => res.json())
       .then(data => {
         if (data.result) {

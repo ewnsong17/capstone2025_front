@@ -1,34 +1,23 @@
 import React, { useState } from 'react';
-import { View, Image, TouchableOpacity, StyleSheet, TextInput, Alert, SafeAreaView } from 'react-native';
+import { View, Image, TouchableOpacity, StyleSheet, SafeAreaView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 export default function Header({ onLogoPress, onSearchPress, onOpenMyPage, simple = false }) {
     const [searchQuery, setSearchQuery] = useState("");
 
-    const handleSearch = () => {
-        Alert.alert("알림", `\"${searchQuery}\"이(가) 입력되었습니다`);
-    };
+    const navigation = useNavigation();
 
     return (
         <SafeAreaView style={styles.safeArea}>
             <View style={styles.header}>
+                {/* 왼쪽 로고 */}
                 <TouchableOpacity onPress={onLogoPress}>
                     <Image source={require('./assets/logo.png')} style={styles.logo} />
                 </TouchableOpacity>
 
+                {/* 오른쪽 아이콘들 */}
                 {!simple && (
-                    <>
-                        <View style={styles.searchContainer}>
-                            <TextInput
-                                style={styles.searchInput}
-                                placeholder="검색어를 입력하세요..."
-                                value={searchQuery}
-                                onChangeText={setSearchQuery}
-                            />
-                            <TouchableOpacity onPress={handleSearch}>
-                                <Image source={require('./assets/search.png')} style={styles.icon} />
-                            </TouchableOpacity>
-                        </View>
-
+                    <View style={styles.rightIcons}>
                         <TouchableOpacity onPress={onSearchPress}>
                             <Image source={require('./assets/optionsearch.png')} style={styles.icon} />
                         </TouchableOpacity>
@@ -36,7 +25,7 @@ export default function Header({ onLogoPress, onSearchPress, onOpenMyPage, simpl
                         <TouchableOpacity onPress={onOpenMyPage}>
                             <Image source={require('./assets/myInform.png')} style={styles.icon} />
                         </TouchableOpacity>
-                    </>
+                    </View>
                 )}
             </View>
         </SafeAreaView>
@@ -51,27 +40,18 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'space-between', // 왼쪽-오른쪽 정렬
         padding: 10,
         backgroundColor: '#F0F8FF',
+        height: 50,
     },
     logo: {
         width: 50,
         height: 50,
     },
-    searchContainer: {
-        flex: 1,
+    rightIcons: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'white',
-        borderRadius: 8,
-        borderWidth: 1,
-        borderColor: '#ddd',
-        marginLeft: 10,
-        paddingHorizontal: 8,
-    },
-    searchInput: {
-        flex: 1,
-        height: 40,
     },
     icon: {
         width: 30,

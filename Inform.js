@@ -95,10 +95,6 @@ export default function MyPage({ onClose, isVisible }) {
                             <Text style={styles.menuText}>내 여행</Text>
                             <Image source={require('./assets/plane.png')} style={styles.menuIcon} />
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.menuItem}>
-                            <Text style={styles.menuText}>내 저장</Text>
-                            <Image source={require('./assets/heart.png')} style={styles.menuIcon} />
-                        </TouchableOpacity>
                         <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('MyReview')}>
                             <Text style={styles.menuText}>내 리뷰</Text>
                             <Image source={require('./assets/review.png')} style={styles.menuIcon} />

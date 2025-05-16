@@ -21,16 +21,60 @@ export default function SearchResults() {
         };
         const mappedType = typeMap[selectedFilterCategory];
 
+        const requestBody = {
+            type: mappedType,
+            min_price: minPrice,
+            max_price: maxPrice
+        };
+
         try {
             console.log("🚀 [fetchFilteredPackages] 서버로 요청 시작");
+            console.log("📤 [fetch] 요청 바디:", JSON.stringify(requestBody));
 
-            const response = await fetch('http://192.168.199.146:3000/search/results', {
+            const response = await fetch('http://223.194.129.140:3000/search/results', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    type: mappedType,
-                    price: maxPrice  // ❗min은 안 쓰니까 max만 보냄
-                })
+                body: JSON.stringify(requestBody)
+            });
+
+            const data = await response.json();
+            console.log("🌐 [fetch] 응답 상태 코드:", response.status);
+            console.log("📦 [fetch] 응답 데이터:", data);
+
+            if (data.result) {
+                const updatedList = data.result_list.map(pkg => ({
+                    ...pkg,
+                    image: pkg.image || "http://tkfile.yes24.com/upload2/PerfBlog/202505/20250508/20250508-53433.jpg"
+                }));
+
+                setPackageList(updatedList);
+
+                console.log("✅ [fetch] 패키지 리스트 상태 업데이트 완료");
+            } else {
+                console.warn("❌ [fetch] 서버 에러:", data.exception);
+            }
+        } catch (error) {
+            console.error("🔥 [fetch] API 요청 실패:", error);
+        }
+    };
+
+
+
+    const fetchPackages = async (type) => {
+        const requestBody = {
+            type: type,
+            min_price: "0",
+            max_price: "9999999"
+        };
+
+        try {
+            console.log("🚀 [fetchPackages] 서버로 요청 시작");
+            console.log("📤 [fetch] 요청 바디:", JSON.stringify(requestBody));
+
+            const response = await fetch('http://223.194.129.140:3000/search/results', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestBody)
             });
 
             const data = await response.json();
@@ -43,26 +87,10 @@ export default function SearchResults() {
             } else {
                 console.warn("❌ [fetch] 서버 에러:", data.exception);
             }
-        } catch (error) {
-            console.error("🔥 [fetch] API 요청 실패:", error);
-        }
-    };
-
-    const fetchPackages = async (type, price = 9999999) => {
-        try {
-            const response = await fetch('http://192.168.219.1:3000/search/results', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ type, price })
-            });
-
-            const data = await response.json();
-            if (data.result) setPackageList(data.result_list);
         } catch (err) {
-            console.error('패키지 불러오기 실패:', err);
+            console.error("🔥 [fetch] API 요청 실패:", err);
         }
     };
-
 
 
     // 필터 적용 후 닫기 (초기화)
@@ -124,8 +152,19 @@ export default function SearchResults() {
                         console.log("🖼 렌더링 중인 패키지:", pkg);
                         return (
                             <View key={index} style={styles.packageItem}>
-                                <Text style={styles.text}>{pkg.title}</Text>
-                                <Text>{pkg.price}원</Text>
+                                <Text style={styles.text}>{pkg.name}</Text>
+                                <Text>{pkg.country}</Text>
+                                <Text>
+                                    {new Date(pkg.start_date).toLocaleDateString()} ~ {new Date(pkg.end_date).toLocaleDateString()}
+                                </Text>
+                                <Text>{pkg.price.toLocaleString()}원</Text>
+                                {pkg.image && (
+                                    <Image
+                                        source={{ uri: pkg.image }}
+                                        style={{ width: '100%', height: 200, borderRadius: 10 }}
+                                        resizeMode="cover"
+                                    />
+                                )}
                             </View>
                         );
                     })
