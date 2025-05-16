@@ -15,11 +15,12 @@ const App = ({ setCurrentScreen, selectedDate, selectedPlace, setSelectedDate, s
   const [packageList, setPackageList] = useState([]);
 
   useEffect(() => {
-    fetch('http://localhost:3000/main/banners', { method: 'POST',
-             headers: {
+    fetch('http://223.194.129.140:3000/main/banners', {
+      method: 'POST',
+      headers: {
         'Content-Type': 'application.json'
-       }, 
-     })
+      },
+    })
       .then(res => res.json())
       .then(data => {
         if (data.result) {
@@ -32,12 +33,12 @@ const App = ({ setCurrentScreen, selectedDate, selectedPlace, setSelectedDate, s
   }, []);
 
   useEffect(() => {
-    fetch('http://localhost:3000/main/packages', {
-       method: 'POST',
-       headers: {
+    fetch('http://223.194.129.140:3000/main/packages', {
+      method: 'POST',
+      headers: {
         'Content-Type': 'application.json'
-       }, 
-      })
+      },
+    })
       .then(res => res.json())
       .then(data => {
         if (data.result) {
@@ -72,9 +73,10 @@ const App = ({ setCurrentScreen, selectedDate, selectedPlace, setSelectedDate, s
       <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false} style={styles.photoScrollContainer}>
         {bannerList.map((image, index) => (
           <View key={index} style={styles.photoArea}>
-            <Image source={{ uri: `http://10.0.2.2:3000/static/${image}` }} style={styles.photoImage} resizeMode="cover" />
+            <Image source={{ uri: image }} style={styles.photoImage} resizeMode="cover" />
           </View>
         ))}
+
       </ScrollView>
 
       {/* PLACE & DATE 버튼 */}
@@ -189,8 +191,8 @@ const App = ({ setCurrentScreen, selectedDate, selectedPlace, setSelectedDate, s
         <Image
           source={
             !selectedPlace || !selectedDate
-              ? require('./assets/plane.png')          
-              : require('./assets/plane_fill.png')     
+              ? require('./assets/plane.png')
+              : require('./assets/plane_fill.png')
           }
           style={styles.searchImage}
         />
@@ -208,13 +210,10 @@ const App = ({ setCurrentScreen, selectedDate, selectedPlace, setSelectedDate, s
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photoScrollContainer}>
         {packageList.map((img, index) => (
           <View key={index} style={styles.photoArea}>
-            <Image
-              source={{ uri: `http://10.0.2.2:3000/static/${img}` }}
-              style={styles.photoImage}
-              resizeMode="cover"
-            />
+            <Image source={{ uri: img }} style={styles.photoImage} resizeMode="cover" />
           </View>
         ))}
+
       </ScrollView>
 
     </ScrollView>
