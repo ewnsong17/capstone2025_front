@@ -54,7 +54,7 @@ export default function MyPage({ onClose, isVisible }) {
         }
 
         try {
-            const response = await axios.post('http://192.168.199.116:3000/user/login', {
+            const response = await axios.post('http://192.168.219.106:3000/user/login', {
                 id: email,
                 pwd: password,
             });

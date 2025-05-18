@@ -1,166 +1,223 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Image, ScrollView, StyleSheet, KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard, Platform, Alert } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome'; // FontAwesome 아이콘 사용
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  StyleSheet,
+  Platform,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Keyboard,
+  TouchableWithoutFeedback,
+  ScrollView,
+} from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
-const AITravel = () => {
-  const [messages, setMessages] = useState([]);  // 채팅 메시지 상태
-  const [message, setMessage] = useState('');     // 입력한 메시지 상태
+export default function AITravel() {
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
+  const [showStartPicker, setShowStartPicker] = useState(false);
+  const [showEndPicker, setShowEndPicker] = useState(false);
+  const [tempStartDate, setTempStartDate] = useState(startDate);
+  const [tempEndDate, setTempEndDate] = useState(endDate);
+  const [city, setCity] = useState('');
+  const [aiResponse, setAiResponse] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  // 봇의 초기 메시지 추가
-  useEffect(() => {
-    setMessages([{ 
-      text: 'AI를 활용해 여행 계획을 세워보세요!', 
-      sender: 'bot', 
-      icon: 'plane' // 아이콘 추가
-    }]);
-  }, []);
+  const formatDate = (date) => {
+    const yyyy = date.getFullYear();
+    const mm = ('0' + (date.getMonth() + 1)).slice(-2);
+    const dd = ('0' + date.getDate()).slice(-2);
+    return `${yyyy}-${mm}-${dd}`;
+  };
 
-  // 메시지 전송 함수
-  const sendMessage = () => {
-    if (message.trim() !== '') {
-      setMessages([...messages, { text: message, sender: 'user' }]);
-      setMessage('');
+  const onStartChange = (event, selectedDate) => {
+    if (event.type === 'dismissed') {
+      setShowStartPicker(false);
+      return;
+    }
+    if (selectedDate) {
+      setTempStartDate(selectedDate);
     }
   };
 
-  // 버튼 클릭 시 메시지 출력
-  const handleButtonPress = (destination) => {
-    setMessages([...messages, { text: `${destination} clicked!`, sender: 'bot', icon: 'plane' }]);
+  const onEndChange = (event, selectedDate) => {
+    if (event.type === 'dismissed') {
+      setShowEndPicker(false);
+      return;
+    }
+    if (selectedDate) {
+      setTempEndDate(selectedDate);
+    }
+  };
+
+  const confirmStartDate = () => {
+    setStartDate(tempStartDate);
+    setShowStartPicker(false);
+  };
+
+  const confirmEndDate = () => {
+    setEndDate(tempEndDate);
+    setShowEndPicker(false);
+  };
+
+  const sendToAI = async () => {
+    const start_date = formatDate(startDate);
+    const end_date = formatDate(endDate);
+
+    if (!city.trim()) {
+      setAiResponse('도시를 입력하세요.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await fetch('https://4509-182-221-111-25.ngrok-free.app/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ start_date, end_date, city: city.trim() }),
+      });
+      const data = await response.json();
+      setAiResponse(data.generatedText || '응답이 없습니다.');
+    } catch (error) {
+      setAiResponse('서버 요청 중 오류가 발생했습니다.');
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-    >
-      <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
-        <View style={styles.innerContainer}>
-          {/* 채팅 화면 */}
-          <ScrollView contentContainerStyle={styles.chatContainer}>
-            {messages.map((msg, index) => (
-              <View
-                key={index}
-                style={[styles.messageContainer, msg.sender === 'user' ? styles.userMessage : styles.aiMessage]}
-              >
-                {msg.sender === 'bot' && (
-                  <Icon name={msg.icon} size={30} color="#4D616B" style={styles.botIcon} /> // 아이콘 표시
-                )}
-                <Text style={styles.messageText}>{msg.text}</Text>
-              </View>
-            ))}
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+      >
+        <View style={styles.container}>
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={styles.responseContainer}>
+              <Text style={styles.responseLabel}>추천 여행 계획</Text>
+              <Text style={styles.responseText}>{aiResponse}</Text>
+            </View>
           </ScrollView>
 
-          {/* 버튼들 */}
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.roundedButton} onPress={() => handleButtonPress('추천 국내 여행지')}>
-              <Text style={styles.buttonText}>추천 국내 여행지</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.roundedButton} onPress={() => handleButtonPress('추천 해외 여행지')}>
-              <Text style={styles.buttonText}>추천 해외 여행지</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.roundedButton} onPress={() => handleButtonPress('추천 공연')}>
-              <Text style={styles.buttonText}>추천 공연</Text>
-            </TouchableOpacity>
-          </View>
+          <View style={styles.bottomBar}>
+            <View style={styles.pickerRow}>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowStartPicker(!showStartPicker);
+                  setShowEndPicker(false);
+                  setTempStartDate(startDate);
+                }}
+                style={styles.dateButton}
+              >
+                <Text>출발일: {formatDate(startDate)}</Text>
+              </TouchableOpacity>
 
-          {/* 메시지 입력 부분 */}
-          <View style={styles.inputContainer}>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowEndPicker(!showEndPicker);
+                  setShowStartPicker(false);
+                  setTempEndDate(endDate);
+                }}
+                style={styles.dateButton}
+              >
+                <Text>도착일: {formatDate(endDate)}</Text>
+              </TouchableOpacity>
+            </View>
+
+            {showStartPicker && (
+              <View>
+                <DateTimePicker
+                  value={tempStartDate}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
+                  onChange={onStartChange}
+                />
+                <Button title="확인" onPress={confirmStartDate} color="#87CEEB" />
+              </View>
+            )}
+
+            {showEndPicker && (
+              <View>
+                <DateTimePicker
+                  value={tempEndDate}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
+                  onChange={onEndChange}
+                />
+                <Button title="확인" onPress={confirmEndDate} color="#87CEEB" />
+              </View>
+            )}
+
             <TextInput
               style={styles.input}
-              value={message}
-              onChangeText={setMessage}
-              placeholder="Type your message..."
-              placeholderTextColor="gray"
+              placeholder="여행할 도시를 입력하세요"
+              value={city}
+              onChangeText={setCity}
             />
-            <TouchableOpacity onPress={sendMessage}>
-              <Image source={require('./assets/send.png')} style={styles.sendButton} />
-            </TouchableOpacity>
+            <Button
+              title={loading ? '응답 중...' : 'S E N D'}
+              onPress={sendToAI}
+              disabled={loading}
+              color="purple"
+            />
           </View>
         </View>
-      </TouchableWithoutFeedback>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#F0F8FF',
   },
-  innerContainer: {
-    flex: 1,
-    padding: 10,
+  scrollContent: {
+    padding: 20,
+    paddingBottom: 200,
   },
-  buttonContainer: {
+  responseLabel: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginBottom: 15,
+  },
+  responseText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  bottomBar: {
+    padding: 16,
+    backgroundColor: '#F0F8FF',
+    borderTopWidth: 1,
+    borderColor: '#E6E6FA',
+  },
+  pickerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: 12,
   },
-  roundedButton: {
-    backgroundColor: 'skyblue',
-    borderRadius: 20,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  chatContainer: {
-    paddingBottom: 10,
-  },
-  messageContainer: {
-    flexDirection: 'row',
-    marginBottom: 10,
-  },
-  aiMessage: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#87CEEB',
-    padding: 10,
-    borderRadius: 10,
-    flexDirection: 'row',
-  },
-  userMessage: {
-    alignSelf: 'flex-end',
-    backgroundColor: 'pink',
-    color: '#fff',
-    padding: 10,
-    borderRadius: 10,
-    maxWidth: '80%',
-  },
-  messageText: {
-    marginTop : 5,
-    color: '#333',
-    fontSize: 16,
-  },
-  botIcon: {
-    marginRight: 15,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: '#ddd',
-    paddingVertical: 10,
-  },
-  input: {
-    flex: 1,
-    height: 40,
-    borderRadius: 20,
+  dateButton: {
     borderWidth: 1,
     borderColor: '#ccc',
-    paddingHorizontal: 15,
-    marginRight: 10,
+    borderRadius: 8,
+    padding: 12,
+    minWidth: '45%',
+    alignItems: 'center',
   },
-  sendButton: {
-    width: 30,
-    height: 30,
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 12,
   },
 });
-
-export default AITravel;
