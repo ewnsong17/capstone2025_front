@@ -23,15 +23,15 @@ export default function SearchResults() {
 
         const requestBody = {
             type: mappedType,
-            min_price: minPrice,
-            max_price: maxPrice
+            min_price: 0,
+            max_price: 9999999
         };
 
         try {
             console.log("🚀 [fetchFilteredPackages] 서버로 요청 시작");
             console.log("📤 [fetch] 요청 바디:", JSON.stringify(requestBody));
 
-            const response = await fetch('http://localhost:3000/search/results', {
+            const response = await fetch('http://192.168.199.116:3000/search/results', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(requestBody)
@@ -62,16 +62,16 @@ export default function SearchResults() {
 
     const fetchPackages = async (type) => {
         const requestBody = {
-            type: type,
-            min_price: "0",
-            max_price: "9999999"
+            type: type, // ✅ 올바르게 매개변수 사용
+            min_price: 0,
+            max_price: 9999999
         };
 
         try {
             console.log("🚀 [fetchPackages] 서버로 요청 시작");
             console.log("📤 [fetch] 요청 바디:", JSON.stringify(requestBody));
 
-            const response = await fetch('http://localhost:3000/search/results', {
+            const response = await fetch('http://192.168.199.116:3000/search/results', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(requestBody)
@@ -82,7 +82,12 @@ export default function SearchResults() {
             console.log("📦 [fetch] 응답 데이터:", data);
 
             if (data.result) {
-                setPackageList(data.result_list);
+                const updatedList = data.result_list.map(pkg => ({
+                    ...pkg,
+                    image: pkg.image  // 그대로 사용 (가공 없이)
+                }));
+
+                setPackageList(updatedList);
                 console.log("✅ [fetch] 패키지 리스트 상태 업데이트 완료");
             } else {
                 console.warn("❌ [fetch] 서버 에러:", data.exception);
@@ -91,7 +96,6 @@ export default function SearchResults() {
             console.error("🔥 [fetch] API 요청 실패:", err);
         }
     };
-
 
     // 필터 적용 후 닫기 (초기화)
     const applyFilter = () => {
@@ -153,11 +157,6 @@ export default function SearchResults() {
                         return (
                             <View key={index} style={styles.packageItem}>
                                 <Text style={styles.text}>{pkg.name}</Text>
-                                <Text>{pkg.country}</Text>
-                                <Text>
-                                    {new Date(pkg.start_date).toLocaleDateString()} ~ {new Date(pkg.end_date).toLocaleDateString()}
-                                </Text>
-                                <Text>{pkg.price.toLocaleString()}원</Text>
                                 {pkg.image && (
                                     <Image
                                         source={{ uri: pkg.image }}
@@ -165,6 +164,11 @@ export default function SearchResults() {
                                         resizeMode="cover"
                                     />
                                 )}
+                                <Text>{pkg.country}</Text>
+                                <Text>
+                                    {new Date(pkg.start_date).toLocaleDateString()} ~ {new Date(pkg.end_date).toLocaleDateString()}
+                                </Text>
+                                <Text>{pkg.price.toLocaleString()}원</Text>
                             </View>
                         );
                     })

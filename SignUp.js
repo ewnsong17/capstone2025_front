@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import axios from 'axios';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, TouchableWithoutFeedback, Keyboard, navigation } from 'react-native';
 
 export default function SignUp() {
     const [name, setName] = useState('');
@@ -8,13 +9,22 @@ export default function SignUp() {
     const [password, setPassword] = useState('');
 
     // 회원가입 버튼 클릭 시 실행되는 함수
-    const handleSignUp = () => {
-        if (!name || !birthDate || !email || !password) {
-            Alert.alert('모든 필드를 채워주세요!');
-        } else {
-            // 회원가입 성공 시 처리 로직
-            Alert.alert('회원가입이 완료되었습니다!');
-            // 여기에 회원가입 API 호출 등 추가 작업을 할 수 있습니다.
+    const handleSignUp = async () => {
+        try {
+            const response = await axios.post('http://192.168.199.116:3000/user/signup', {
+                id: email,
+                pwd: password,
+            });
+
+            if (response.data.result) {
+                Alert.alert('회원가입 성공');
+                navigation.goBack();
+            } else {
+                Alert.alert('회원가입 실패', response.data.exception || '이미 존재하는 계정입니다.');
+            }
+        } catch (err) {
+            console.error(err);
+            Alert.alert('서버 오류', '통신에 실패했습니다.');
         }
     };
 
@@ -22,7 +32,7 @@ export default function SignUp() {
         <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
             <View style={styles.container}>
                 <Text style={styles.title}>Sign Up</Text>
-    
+
                 <TextInput
                     style={styles.input}
                     placeholder="이름"
@@ -49,7 +59,7 @@ export default function SignUp() {
                     onChangeText={setPassword}
                     secureTextEntry
                 />
-    
+
                 <TouchableOpacity style={styles.button} onPress={handleSignUp}>
                     <Text style={styles.buttonText}>회원가입</Text>
                 </TouchableOpacity>

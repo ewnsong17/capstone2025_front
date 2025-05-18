@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, StatusBar } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import SplashScreen from './MainTitle';
 import Header from './Header';
 import MainPage from './MainPage';
@@ -11,6 +12,7 @@ import MyProFile from './MyProFile';
 import AITravel from './AITravel';
 import { ProfileProvider } from './ProFileContext';
 import { ReviewContext, ReviewProvider } from './ReviewContext';
+import { LoginProvider } from './LoginContext';
 import SignUp from './SignUp';
 import MyTripLists from './MyTripLists';
 import TripDetails from './TripDetails';
@@ -78,24 +80,31 @@ export default function App() {
         return <SplashScreen />;
     }
 
-    return (
-        <ProfileProvider>
-            <ReviewProvider>
-                <NavigationContainer>
-                    <Stack.Navigator screenOptions={{ headerShown: false }}>
-                        <Stack.Screen name="MainApp" component={MainApp} />
-                        <Stack.Screen name="MyProFile" component={MyProFile} />
-                        <Stack.Screen name="SignUp" component={SignUp} />
-                        <Stack.Screen name="MyTripLists" component={MyTripLists} />
-                        <Stack.Screen name="NewTripPlans" component={NewTripPlans} />
-                        <Stack.Screen name="TripDetails" component={TripDetails} />
-                        <Stack.Screen name="TripReservation" component={TripReservation} />
-                        <Stack.Screen name="MyReview" component={MyReview} />
-                    </Stack.Navigator>
-                </NavigationContainer>
-            </ReviewProvider>
-        </ProfileProvider>
 
+    return (
+        <SafeAreaProvider>
+            <SafeAreaView style={{ flex: 1 }} edges={['top', 'bottom']}>
+                <StatusBar translucent backgroundColor="transparent" barStyle="dark-content" />
+                <LoginProvider>
+                    <ProfileProvider>
+                        <ReviewProvider>
+                            <NavigationContainer>
+                                <Stack.Navigator screenOptions={{ headerShown: false }}>
+                                    <Stack.Screen name="MainApp" component={MainApp} />
+                                    <Stack.Screen name="MyProFile" component={MyProFile} />
+                                    <Stack.Screen name="SignUp" component={SignUp} />
+                                    <Stack.Screen name="MyTripLists" component={MyTripLists} />
+                                    <Stack.Screen name="NewTripPlans" component={NewTripPlans} />
+                                    <Stack.Screen name="TripDetails" component={TripDetails} />
+                                    <Stack.Screen name="TripReservation" component={TripReservation} />
+                                    <Stack.Screen name="MyReview" component={MyReview} />
+                                </Stack.Navigator>
+                            </NavigationContainer>
+                        </ReviewProvider>
+                    </ProfileProvider>
+                </LoginProvider>
+            </SafeAreaView>
+        </SafeAreaProvider>
     );
 }
 

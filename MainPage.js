@@ -15,7 +15,7 @@ const App = ({ setCurrentScreen, selectedDate, selectedPlace, setSelectedDate, s
   const [packageList, setPackageList] = useState([]);
 
   useEffect(() => {
-    fetch('http://223.194.129.140:3000/main/banners', {
+    fetch('http://192.168.199.116:3000/main/banners', {
       method: 'POST',
       headers: {
         'Content-Type': 'application.json'
@@ -33,7 +33,7 @@ const App = ({ setCurrentScreen, selectedDate, selectedPlace, setSelectedDate, s
   }, []);
 
   useEffect(() => {
-    fetch('http://223.194.129.140:3000/main/packages', {
+    fetch('http://192.168.199.116:3000/main/packages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application.json'

@@ -1,14 +1,16 @@
-import React, { useState, useContext, useEffect, useRef } from 'react';
+import React, { useState, useContext, useEffect, useRef, createContext } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Animated, Dimensions, TouchableWithoutFeedback, TextInput, Modal, Alert } from 'react-native';
 import { ProfileContext } from './ProFileContext'; // Context import
+import { LoginContext } from './LoginContext';
+import axios from 'axios';
+
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window'); // 화면 너비와 높이 가져오기
 
 export default function MyPage({ onClose, isVisible }) {
     const navigation = useNavigation();
     const slideAnim = useRef(new Animated.Value(screenWidth)).current; // 초기 위치 (화면 밖)
-    const [isProfileVisible, setIsProfileVisible] = useState(false);
-    const [isLoggedIn, setIsLoggedIn] = useState(false); // 로그인 상태 관리
+    const { isLoggedIn, setIsLoggedIn, user, setUser } = useContext(LoginContext);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoginModalVisible, setLoginModalVisible] = useState(false);
@@ -45,15 +47,32 @@ export default function MyPage({ onClose, isVisible }) {
     };
 
     // 로그인 처리 함수
-    const handleLoginSubmit = () => {
-        const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const handleLoginSubmit = async () => {
         if (!email || !password) {
             Alert.alert("입력 오류", "이메일과 비밀번호를 모두 입력해주세요.");
-        } else if (!emailPattern.test(email)) {
-            Alert.alert("이메일 오류", "유효한 이메일 형식을 입력해주세요.");
-        } else {
-            setIsLoggedIn(true);
-            setLoginModalVisible(false); // 로그인 후 팝업 닫기
+            return;
+        }
+
+        try {
+            const response = await axios.post('http://192.168.199.116:3000/user/login', {
+                id: email,
+                pwd: password,
+            });
+
+            if (response.data.result) {
+                // 로그인 성공
+                setIsLoggedIn(true);
+                setUser({
+                    name: email,
+                    birth: null, // 백엔드가 birth 정보를 반환하지 않으므로 임시로 null
+                });
+                setLoginModalVisible(false);
+            } else {
+                Alert.alert('로그인 실패', response.data.exception || '아이디 또는 비밀번호를 확인하세요.');
+            }
+        } catch (err) {
+            console.error(err);
+            Alert.alert('서버 오류', '서버와의 통신에 실패했습니다.');
         }
     };
 
@@ -73,29 +92,64 @@ export default function MyPage({ onClose, isVisible }) {
 
                     {/* 프로필 정보 */}
                     <View style={styles.profileContainer}>
-                        <TouchableOpacity onPress={() => navigation.navigate('MyProFile')}>
+                        <TouchableOpacity
+                            onPress={() => {
+                                if (!isLoggedIn) {
+                                    Alert.alert("로그인 해주세요.");
+                                    return;
+                                }
+                                navigation.navigate('MyProFile');
+                            }}
+                        >
                             <Image
                                 source={profileImage ? { uri: profileImage } : require('./assets/myInform.png')}
                                 style={styles.profileImage}
                             />
                         </TouchableOpacity>
 
+
                         <View style={styles.profileTextContainer}>
-                            <Text style={styles.profileName}>{name}</Text>
-                            <Text style={styles.editProfile}>생년월일: {birthDate}</Text>
-                            <TouchableOpacity onPress={() => navigation.navigate('MyProFile')}>
-                                <Text style={styles.editProfile}>프로필 편집 {'>'}</Text>
-                            </TouchableOpacity>
+                            <Text style={styles.profileName}>
+                                {isLoggedIn ? user.name : '로그인 해주세요'}
+                            </Text>
+
+                            {isLoggedIn && user.birth && (
+                                <Text style={styles.editProfile}>생년월일: {user.birth}</Text>
+                            )}
+
+                            {isLoggedIn && (
+                                <TouchableOpacity onPress={() => navigation.navigate('MyProFile')}>
+                                    <Text style={styles.editProfile}>프로필 편집 {'>'}</Text>
+                                </TouchableOpacity>
+                            )}
                         </View>
                     </View>
 
                     {/* 메뉴 섹션 */}
                     <View style={styles.menuContainer}>
-                        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('MyTripLists')}>
+                        <TouchableOpacity
+                            style={styles.menuItem}
+                            onPress={() => {
+                                if (!isLoggedIn) {
+                                    Alert.alert("로그인 해주세요.");
+                                    return;
+                                }
+                                navigation.navigate('MyTripLists');
+                            }}
+                        >
                             <Text style={styles.menuText}>내 여행</Text>
                             <Image source={require('./assets/plane.png')} style={styles.menuIcon} />
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('MyReview')}>
+                        <TouchableOpacity
+                            style={styles.menuItem}
+                            onPress={() => {
+                                if (!isLoggedIn) {
+                                    Alert.alert("로그인 해주세요.");
+                                    return;
+                                }
+                                navigation.navigate('MyReview');
+                            }}
+                        >
                             <Text style={styles.menuText}>내 리뷰</Text>
                             <Image source={require('./assets/review.png')} style={styles.menuIcon} />
                         </TouchableOpacity>
@@ -242,15 +296,15 @@ const styles = StyleSheet.create({
     },
     authButton: {
         backgroundColor: '#87CEEB',
-        height: 40, 
-        width: 115,  
-        marginHorizontal: 10, 
+        height: 40,
+        width: 115,
+        marginHorizontal: 10,
         borderRadius: 5,
         alignItems: 'center',
         justifyContent: 'center',
     },
     authButtonText: {
-        fontSize: 15,  
+        fontSize: 15,
         fontWeight: 'bold',
         color: '#fff',
         textAlign: 'center',
