@@ -11,7 +11,7 @@ export default function SignUp() {
     // 회원가입 버튼 클릭 시 실행되는 함수
     const handleSignUp = async () => {
         try {
-            const response = await axios.post('http://192.168.219.106:3000/user/signup', {
+            const response = await axios.post('http://192.168.200.165:3001/user/signup', {
                 id: email,
                 pwd: password,
             });

@@ -75,7 +75,7 @@ export default function AITravel() {
 
     setLoading(true);
     try {
-      const response = await fetch('https://b60e-182-221-111-25.ngrok-free.app/api/ai', {
+      const response = await fetch('https://40f5-223-194-129-104.ngrok-free.app/api/ai', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ start_date, end_date, city: city.trim() }),

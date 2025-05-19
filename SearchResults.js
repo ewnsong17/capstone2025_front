@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, TextInput, Keyboard, TouchableWithoutFeedback } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 export default function SearchResults() {
     const [selectedCategory, setSelectedCategory] = useState('콘서트'); // 패키지의 카테고리
@@ -10,6 +11,7 @@ export default function SearchResults() {
 
     const categories = ['콘서트', '뮤지컬', '스포츠'];
     const [packageList, setPackageList] = useState([]); // 패키지 리스트 (필터링된 결과를 저장할 상태)
+    const navigation = useNavigation();
 
     const fetchFilteredPackages = async () => {
         if (!selectedFilterCategory || !minPrice || !maxPrice) return;
@@ -23,15 +25,16 @@ export default function SearchResults() {
 
         const requestBody = {
             type: mappedType,
-            min_price: 0,
-            max_price: 9999999
+            min_price: parseInt(minPrice) || 0,
+            max_price: parseInt(maxPrice) || 9999999
         };
+
 
         try {
             console.log("🚀 [fetchFilteredPackages] 서버로 요청 시작");
             console.log("📤 [fetch] 요청 바디:", JSON.stringify(requestBody));
 
-            const response = await fetch('http://192.168.219.106:3000/search/results', {
+            const response = await fetch('http://192.168.200.165:3001/search/results', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(requestBody)
@@ -62,16 +65,17 @@ export default function SearchResults() {
 
     const fetchPackages = async (type) => {
         const requestBody = {
-            type: type, // ✅ 올바르게 매개변수 사용
-            min_price: 0,
-            max_price: 9999999
+            type: type,
+            min_price: parseInt(minPrice) || 0,
+            max_price: parseInt(maxPrice) || 9999999
         };
+
 
         try {
             console.log("🚀 [fetchPackages] 서버로 요청 시작");
             console.log("📤 [fetch] 요청 바디:", JSON.stringify(requestBody));
 
-            const response = await fetch('http://192.168.219.106:3000/search/results', {
+            const response = await fetch('http://192.168.200.165:3001/search/results', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(requestBody)
@@ -100,10 +104,22 @@ export default function SearchResults() {
     // 필터 적용 후 닫기 (초기화)
     const applyFilter = () => {
         console.log("💡 [applyFilter] 필터 적용 버튼 클릭됨");
-        console.log("👉 선택된 카테고리:", selectedFilterCategory);
-        console.log("👉 가격 범위:", minPrice, "-", maxPrice);
-        fetchFilteredPackages();
+
+        const typeMap = {
+            '콘서트': 1,
+            '뮤지컬': 2,
+            '스포츠': 3
+        };
+        const mappedType = typeMap[selectedFilterCategory];
+
+        const filterData = {
+            type: mappedType,
+            min_price: parseInt(minPrice) || 0,
+            max_price: parseInt(maxPrice) || 9999999
+        };
+
         setShowFilter(false);
+        navigation.navigate('SearchFilteredResults', { filterData }); // 새 화면으로 이동
     };
 
     const handleResetPlace = () => { // 초기화 버튼
