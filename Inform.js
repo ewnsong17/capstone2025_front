@@ -4,6 +4,7 @@ import { View, Text, Image, StyleSheet, TouchableOpacity, Animated, Dimensions, 
 import { ProfileContext } from './ProFileContext'; // Context import
 import { LoginContext } from './LoginContext';
 import axios from 'axios';
+import config from './config';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window'); // 화면 너비와 높이 가져오기
 
@@ -54,7 +55,7 @@ export default function MyPage({ onClose, isVisible }) {
         }
 
         try {
-            const response = await axios.post('http://192.168.200.165:3001/user/login', {
+            const response = await axios.post(`${config.api.base_url}/user/login`, {
                 id: email,
                 pwd: password,
             });

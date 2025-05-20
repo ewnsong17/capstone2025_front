@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, TouchableWithoutFeedback, Keyboard, navigation } from 'react-native';
+import config from './config';
 
 export default function SignUp() {
     const [name, setName] = useState('');
@@ -11,7 +12,7 @@ export default function SignUp() {
     // 회원가입 버튼 클릭 시 실행되는 함수
     const handleSignUp = async () => {
         try {
-            const response = await axios.post('http://192.168.200.165:3001/user/signup', {
+            const response = await axios.post(`${config.api.base_url}/user/signup`, {
                 id: email,
                 pwd: password,
             });

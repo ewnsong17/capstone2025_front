@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import Header from './Header';
+import config from './config';
 
 export default function SearchFilteredResults() {
     const route = useRoute();
@@ -12,7 +13,7 @@ export default function SearchFilteredResults() {
     useEffect(() => {
         const fetchFilteredResults = async () => {
             try {
-                const response = await fetch('http://192.168.200.165:3001/search/results', {
+                const response = await fetch(`${config.api.base_url}/search/results`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(filterData)
