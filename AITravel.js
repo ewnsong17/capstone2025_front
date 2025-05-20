@@ -76,7 +76,7 @@ export default function AITravel() {
 
     setLoading(true);
     try {
-      const response = await fetch(`${config.ai.base_url}/search/askAI`, {
+      const response = await fetch(`${config.api.base_url}/search/askAI`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ start_date, end_date, city: city.trim() }),
