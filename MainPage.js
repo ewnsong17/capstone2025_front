@@ -35,7 +35,7 @@ const App = ({ setCurrentScreen, selectedDate, returnDate, setReturnDate, select
   }, []);
 
   useEffect(() => {
-    fetch('http://192.168.199.116:3000/main/packages', {
+    fetch(`${config.api.base_url}/main/packages`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
