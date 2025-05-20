@@ -91,13 +91,12 @@ export default function AITravel() {
   };
 
   return (
-  <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
-    >
-      <View style={styles.container}>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+      >
         <ScrollView
           style={{ flex: 1 }}
           contentContainerStyle={styles.scrollContent}
@@ -109,7 +108,6 @@ export default function AITravel() {
               <Text style={styles.responseText}>{aiResponse}</Text>
             </View>
 
-            {/* 저장 버튼을 ScrollView 안쪽으로 옮김 */}
             {aiResponse ? (
               <TouchableOpacity
                 style={styles.saveButton}
@@ -183,10 +181,10 @@ export default function AITravel() {
             color="purple"
           />
         </View>
-      </View>
-    </KeyboardAvoidingView>
-  </TouchableWithoutFeedback>
-);
+      </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
+  );
+
 }
 
 const styles = StyleSheet.create({
@@ -244,17 +242,17 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   saveButton: {
-  backgroundColor: '#ffffff',
-  paddingVertical: 10,
-  paddingHorizontal: 16,
-  borderRadius: 20,
-  borderWidth: 1,
-  borderColor: '#87CEEB',
-  alignSelf: 'flex-end',
-  marginTop: 12,
-},
-saveButtonText: {
-  color: 'black',
-  fontWeight: 'bold',
-},
+    backgroundColor: '#ffffff',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#87CEEB',
+    alignSelf: 'flex-end',
+    marginTop: 12,
+  },
+  saveButtonText: {
+    color: 'black',
+    fontWeight: 'bold',
+  },
 });
