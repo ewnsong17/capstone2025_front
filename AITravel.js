@@ -79,10 +79,17 @@ export default function AITravel() {
       const response = await fetch(`${config.api.base_url}/search/askAI`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ start_date, end_date, city: city.trim() }),
+        body: JSON.stringify({ start_date: start_date, end_date: end_date, city: city.trim() }),
       });
+
       const data = await response.json();
-      setAiResponse(data.generatedText || '응답이 없습니다.');
+      console.log(data);
+
+      if (data.result) {
+        setAiResponse(data.answer);
+      } else {
+        setAiResponse('응답이 없습니다.');
+      }
     } catch (error) {
       setAiResponse('서버 요청 중 오류가 발생했습니다.');
       console.error(error);
