@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
+import config from './config';
 
 export default function AITravel() {
   const navigation = useNavigation(); // 추가
@@ -75,7 +76,7 @@ export default function AITravel() {
 
     setLoading(true);
     try {
-      const response = await fetch('https://40f5-223-194-129-104.ngrok-free.app/api/ai', {
+      const response = await fetch(`${config.ai.base_url}/search/askAI`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ start_date, end_date, city: city.trim() }),
