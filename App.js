@@ -19,6 +19,7 @@ import TripDetails from './TripDetails';
 import TripReservation from './TripReservation';
 import MyReview from './MyReview'
 import NewTripPlans from './NewTripPlans';
+import SearchFilteredResults from './SearchFilteredResults'
 
 const Stack = createStackNavigator();
 
@@ -27,6 +28,7 @@ function MainApp({ navigation }) {
     const [showMyPage, setShowMyPage] = useState(false);
     const [selectedDate, setSelectedDate] = useState(null);
     const [selectedPlace, setSelectedPlace] = useState(null);
+    const [returnDate, setReturnDate] = useState(null);
 
     return (
         <View style={styles.container}>
@@ -40,10 +42,13 @@ function MainApp({ navigation }) {
                 <MainPage
                     setCurrentScreen={setCurrentScreen}
                     selectedDate={selectedDate}
-                    selectedPlace={selectedPlace}
                     setSelectedDate={setSelectedDate}
+                    returnDate={returnDate}
+                    setReturnDate={setReturnDate}
+                    selectedPlace={selectedPlace}
                     setSelectedPlace={setSelectedPlace}
                 />
+
             )}
 
             {currentScreen === 'search' && <SearchResults />}
@@ -98,6 +103,7 @@ export default function App() {
                                     <Stack.Screen name="TripDetails" component={TripDetails} />
                                     <Stack.Screen name="TripReservation" component={TripReservation} />
                                     <Stack.Screen name="MyReview" component={MyReview} />
+                                    <Stack.Screen name="SearchFilteredResults" component={SearchFilteredResults} />
                                 </Stack.Navigator>
                             </NavigationContainer>
                         </ReviewProvider>

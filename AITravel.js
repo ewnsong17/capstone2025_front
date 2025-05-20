@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
+import config from './config';
 
 export default function AITravel() {
   const navigation = useNavigation(); // 추가
@@ -75,7 +76,7 @@ export default function AITravel() {
 
     setLoading(true);
     try {
-      const response = await fetch('https://8a6f-223-194-128-97.ngrok-free.app/api/ai', {
+      const response = await fetch(`${config.api.base_url}/search/askAI`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ start_date, end_date, city: city.trim() }),
@@ -91,12 +92,13 @@ export default function AITravel() {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
-      >
+  <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+    >
+      <View style={styles.container}>
         <ScrollView
           style={{ flex: 1 }}
           contentContainerStyle={styles.scrollContent}
@@ -108,6 +110,7 @@ export default function AITravel() {
               <Text style={styles.responseText}>{aiResponse}</Text>
             </View>
 
+            {/* 저장 버튼을 ScrollView 안쪽으로 옮김 */}
             {aiResponse ? (
               <TouchableOpacity
                 style={styles.saveButton}
@@ -181,10 +184,10 @@ export default function AITravel() {
             color="purple"
           />
         </View>
-      </KeyboardAvoidingView>
-    </TouchableWithoutFeedback>
-  );
-
+      </View>
+    </KeyboardAvoidingView>
+  </TouchableWithoutFeedback>
+);
 }
 
 const styles = StyleSheet.create({
@@ -242,17 +245,17 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   saveButton: {
-    backgroundColor: '#ffffff',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#87CEEB',
-    alignSelf: 'flex-end',
-    marginTop: 12,
-  },
-  saveButtonText: {
-    color: 'black',
-    fontWeight: 'bold',
-  },
+  backgroundColor: '#ffffff',
+  paddingVertical: 10,
+  paddingHorizontal: 16,
+  borderRadius: 20,
+  borderWidth: 1,
+  borderColor: '#87CEEB',
+  alignSelf: 'flex-end',
+  marginTop: 12,
+},
+saveButtonText: {
+  color: 'black',
+  fontWeight: 'bold',
+},
 });

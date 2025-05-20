@@ -8,12 +8,13 @@ const { width, height } = Dimensions.get('window'); // 화면 크기 가져오�
 const IMAGE_WIDTH = width; // 이미지 너비를 화면 전체로 설정
 const IMAGE_HEIGHT = height * 0.4; // 이미지 높이를 화면 높이의 40%로 설정
 
-const App = ({ setCurrentScreen, selectedDate, selectedPlace, setSelectedDate, setSelectedPlace }) => {
+const App = ({ setCurrentScreen, selectedDate, returnDate, setReturnDate, selectedPlace, setSelectedDate, setSelectedPlace }) => {
   const fontLoaded = Font();
   const [showPopup, setShowPopup] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [bannerList, setBannerList] = useState([]);
   const [packageList, setPackageList] = useState([]);
+  const [showReturnDatePicker, setShowReturnDatePicker] = useState(false);
 
   useEffect(() => {
     fetch(`${config.api.base_url}/main/banners`, {
@@ -37,7 +38,7 @@ const App = ({ setCurrentScreen, selectedDate, selectedPlace, setSelectedDate, s
     fetch(`${config.api.base_url}/main/packages`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application.json'
+        'Content-Type': 'application/json'
       },
     })
       .then(res => res.json())
@@ -100,7 +101,14 @@ const App = ({ setCurrentScreen, selectedDate, selectedPlace, setSelectedDate, s
         {/* DATE 버튼 */}
         <TouchableOpacity style={styles.button} onPress={() => setShowDatePicker(true)}>
           <Text style={[styles.text, { color: selectedDate ? 'purple' : 'black' }]}>
-            {selectedDate ? selectedDate : 'D A T E'}
+            {selectedDate ? selectedDate : 'G O  T R I P'}
+          </Text>
+        </TouchableOpacity>
+
+        {/* RETURN DATE 버튼 */}
+        <TouchableOpacity style={styles.button} onPress={() => setShowReturnDatePicker(true)}>
+          <Text style={[styles.text, { color: returnDate ? 'purple' : 'black' }]}>
+            {returnDate ? returnDate : 'R E T U R N'}
           </Text>
         </TouchableOpacity>
 
@@ -109,10 +117,32 @@ const App = ({ setCurrentScreen, selectedDate, selectedPlace, setSelectedDate, s
           isVisible={showDatePicker}
           mode="date"
           onConfirm={(date) => {
-            setSelectedDate(date.toISOString().split('T')[0]); // YYYY-MM-DD 형식 저장
+            const selectedGo = date.toISOString().split('T')[0];
+            if (returnDate && selectedGo > returnDate) {
+              alert('가는 날은 오는 날보다 앞서야 합니다.');
+              setShowDatePicker(false);
+              return;
+            }
+            setSelectedDate(selectedGo);
             setShowDatePicker(false);
           }}
           onCancel={() => setShowDatePicker(false)}
+        />
+
+        <DateTimePickerModal
+          isVisible={showReturnDatePicker}
+          mode="date"
+          onConfirm={(date) => {
+            const selectedReturn = date.toISOString().split('T')[0];
+            if (selectedDate && selectedReturn < selectedDate) {
+              alert('오는 날은 가는 날보다 늦어야 합니다.');
+              setShowReturnDatePicker(false);
+              return;
+            }
+            setReturnDate(selectedReturn);
+            setShowReturnDatePicker(false);
+          }}
+          onCancel={() => setShowReturnDatePicker(false)}
         />
       </View>
 
@@ -179,24 +209,35 @@ const App = ({ setCurrentScreen, selectedDate, selectedPlace, setSelectedDate, s
         <TouchableOpacity style={styles.overlay} onPress={handlePopupClose} />
       )}
 
-
       {/* 항공 및 숙소 예약 */}
       <TouchableOpacity
         style={[
           styles.buttonWithoutBack,
           (!selectedPlace || !selectedDate) && { opacity: 0.5 }
         ]}
-        disabled={!selectedPlace || !selectedDate}
+        disabled={!selectedPlace || !selectedDate || !returnDate}
         onPress={() => setCurrentScreen('TripReservation')}
       >
         <Image
           source={
-            !selectedPlace || !selectedDate
+            !selectedPlace || !selectedDate || !returnDate
               ? require('./assets/plane.png')
               : require('./assets/plane_fill.png')
           }
           style={styles.searchImage}
         />
+      </TouchableOpacity>
+
+      {/* 초기화 버튼 */}
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => {
+          setSelectedPlace(null);
+          setSelectedDate(null);
+          setReturnDate(null);
+        }}
+      >
+        <Text style={styles.resetHint}>선택 초기화</Text>
       </TouchableOpacity>
 
       {/* ai와 같이 여행계획 세우기 */}
