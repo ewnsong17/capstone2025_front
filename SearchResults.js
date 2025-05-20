@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, TextInput, Keyboard, TouchableWithoutFeedback } from 'react-native';
+import config from './config';
 import { useNavigation } from '@react-navigation/native';
 
 export default function SearchResults() {
@@ -34,7 +35,7 @@ export default function SearchResults() {
             console.log("🚀 [fetchFilteredPackages] 서버로 요청 시작");
             console.log("📤 [fetch] 요청 바디:", JSON.stringify(requestBody));
 
-            const response = await fetch('http://192.168.200.165:3001/search/results', {
+            const response = await fetch(`${config.api.base_url}/search/results`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(requestBody)
@@ -75,7 +76,7 @@ export default function SearchResults() {
             console.log("🚀 [fetchPackages] 서버로 요청 시작");
             console.log("📤 [fetch] 요청 바디:", JSON.stringify(requestBody));
 
-            const response = await fetch('http://192.168.200.165:3001/search/results', {
+            const response = await fetch(`${config.api.base_url}/search/results`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(requestBody)

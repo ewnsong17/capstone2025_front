@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import Font from './font';
+import config from './config';
 
 const { width, height } = Dimensions.get('window'); // 화면 크기 가져오기
 const IMAGE_WIDTH = width; // 이미지 너비를 화면 전체로 설정
@@ -16,7 +17,7 @@ const App = ({ setCurrentScreen, selectedDate, returnDate, setReturnDate, select
   const [showReturnDatePicker, setShowReturnDatePicker] = useState(false);
 
   useEffect(() => {
-    fetch('http://192.168.200.165:3001/main/banners', {
+    fetch(`${config.api.base_url}/main/banners`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application.json'
@@ -34,7 +35,7 @@ const App = ({ setCurrentScreen, selectedDate, returnDate, setReturnDate, select
   }, []);
 
   useEffect(() => {
-    fetch('http://192.168.200.165:3001/main/packages', {
+    fetch('http://192.168.199.116:3000/main/packages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
