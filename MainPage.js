@@ -229,6 +229,7 @@ const App = ({ setCurrentScreen, selectedDate, returnDate, setReturnDate, select
       </TouchableOpacity>
 
       {/* 초기화 버튼 */}
+      {/*
       <TouchableOpacity
         style={styles.button}
         onPress={() => {
@@ -239,6 +240,7 @@ const App = ({ setCurrentScreen, selectedDate, returnDate, setReturnDate, select
       >
         <Text style={styles.resetHint}>선택 초기화</Text>
       </TouchableOpacity>
+      */}
 
       {/* ai와 같이 여행계획 세우기 */}
       <View style={styles.planButtonContainer}>
@@ -281,6 +283,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 10,
     marginHorizontal: 10,
+    marginTop: 20,
   },
   photoImage: {
     width: '100%',
