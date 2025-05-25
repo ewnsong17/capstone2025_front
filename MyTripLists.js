@@ -4,46 +4,7 @@ import { SwipeListView } from 'react-native-swipe-list-view';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
 import { useEffect } from 'react';
 import axios from 'axios';
-
-const fetchTripList = async () => {
-    try {
-        console.log("🚀 [fetchTripList] 여행 목록 요청 시작");
-
-        const response = await fetch(`${config.api.base_url}/user/myTripList`, {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' }
-        });
-
-        const data = await response.json();
-        console.log("🌐 응답 상태 코드:", response.status);
-        console.log("📦 받은 데이터:", data);
-
-        if (data.result === true && data.trip_list) {
-            const tripArray = Object.values(data.trip_list);
-
-            // 날짜 비교해서 분리
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-
-            const upcoming = tripArray.filter(trip => new Date(trip.end_date) >= today);
-            const past = tripArray.filter(trip => new Date(trip.end_date) < today);
-
-            // 상태에 반영
-            setUpcomingTrips(upcoming);
-            setTrips(past);
-            console.log("✅ 여행 목록 상태 업데이트 완료");
-        } else {
-            console.warn("❌ 여행 목록 불러오기 실패");
-        }
-    } catch (error) {
-        console.error("🔥 여행 목록 요청 실패:", error);
-    }
-};
-
-useEffect(() => {
-    fetchTripList();
-}, []);
-
+import config from './config';
 
 // 날짜 계산 함수 (period에서 시작일과 종료일을 계산)
 const calculateDays = (startDate, endDate) => {
@@ -61,12 +22,49 @@ const calculateDays = (startDate, endDate) => {
     return Array.from({ length: dayCount }, (_, index) => {
         const currentDay = new Date(start);
         currentDay.setDate(currentDay.getDate() + index);
-        return currentDay.toLocaleDateString(); // 각 날짜 반환
+        return currentDay.toLocaleDateSQtring(); // 각 날짜 반환
     });
 };
 
 const MyTripLists = ({ navigation }) => {
     // 여행 추가된 데이터가 반영될 state
+    useEffect(() => {
+        const fetchTripList = async () => {
+            try {
+                console.log("🚀 [fetchTripList] 여행 목록 요청 시작");
+
+                const response = await fetch(`${config.api.base_url}/user/myTripList`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                const data = await response.json();
+                console.log("🌐 응답 상태 코드:", response.status);
+                console.log("📦 받은 데이터:", data);
+
+                if (data.result === true && data.trip_list) {
+                    const tripArray = Object.values(data.trip_list);
+
+                    // 날짜 비교해서 분리
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+
+                    const upcoming = tripArray.filter(trip => new Date(trip.end_date) >= today);
+                    const past = tripArray.filter(trip => new Date(trip.end_date) < today);
+
+                    // 상태에 반영
+                    setUpcomingTrips(upcoming);
+                    setTrips(past);
+                    console.log("✅ 여행 목록 상태 업데이트 완료");
+                } else {
+                    console.warn("❌ 여행 목록 불러오기 실패");
+                }
+            } catch (error) {
+                console.error("🔥 여행 목록 요청 실패:", error);
+            }
+        };
+        fetchTripList();
+    }, []);
     const route = useRoute();
     const [trips, setTrips] = useState([
         {
