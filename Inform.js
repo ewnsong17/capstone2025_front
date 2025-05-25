@@ -1,9 +1,10 @@
-import React, { useState, useContext, useEffect, useRef, createContext } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { View, Text, Image, StyleSheet, TouchableOpacity, Animated, Dimensions, TouchableWithoutFeedback, TextInput, Modal, Alert } from 'react-native';
 import { ProfileContext } from './ProFileContext'; // Context import
 import { LoginContext } from './LoginContext';
 import axios from 'axios';
+import config from './config';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get('window'); // 화면 너비와 높이 가져오기
 
@@ -14,7 +15,7 @@ export default function MyPage({ onClose, isVisible }) {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoginModalVisible, setLoginModalVisible] = useState(false);
-    const { name, birthDate, profileImage } = useContext(ProfileContext);
+    const { name, setName, birthDate, setBirthDate, profileImage } = useContext(ProfileContext);
 
     useEffect(() => {
         if (isVisible) {
@@ -48,31 +49,55 @@ export default function MyPage({ onClose, isVisible }) {
 
     // 로그인 처리 함수
     const handleLoginSubmit = async () => {
-        if (!email || !password) {
+        if (!email && !password) {
             Alert.alert("입력 오류", "이메일과 비밀번호를 모두 입력해주세요.");
+            return;
+        }
+        if (!email) {
+            Alert.alert("입력 오류", "이메일을 입력해주세요.");
+            return;
+        }
+        if (!password) {
+            Alert.alert("입력 오류", "비밀번호를 입력해주세요.");
             return;
         }
 
         try {
-            const response = await axios.post('http://192.168.199.116:3000/user/login', {
-                id: email,
-                pwd: password,
+            const response = await axios.post(`${config.api.base_url}/user/login`, {
+                email: email,
+                password: password,
             });
 
-            if (response.data.result) {
-                // 로그인 성공
+            if (response.data.result) { // 로그인 성공
                 setIsLoggedIn(true);
                 setUser({
                     name: email,
-                    birth: null, // 백엔드가 birth 정보를 반환하지 않으므로 임시로 null
+                    birth: birthDate,
                 });
+                setName(email);
                 setLoginModalVisible(false);
             } else {
                 Alert.alert('로그인 실패', response.data.exception || '아이디 또는 비밀번호를 확인하세요.');
             }
         } catch (err) {
             console.error(err);
-            Alert.alert('서버 오류', '서버와의 통신에 실패했습니다.');
+
+            if (err.response) {
+                // 서버에서 응답은 왔으나 에러 상태 코드인 경우
+                if (err.response.status === 500) {
+                    Alert.alert('서버 오류', '서버에 문제가 발생했습니다. 잠시 후 다시 시도해주세요.');
+                } else if (err.response.status === 401) {
+                    Alert.alert('로그인 실패', '아이디 또는 비밀번호가 올바르지 않습니다.');
+                } else {
+                    Alert.alert('오류', `에러 코드: ${err.response.status}`);
+                }
+            } else if (err.request) {
+                // 요청은 됐으나 응답 없음
+                Alert.alert('네트워크 오류', '서버와 연결할 수 없습니다.');
+            } else {
+                // 요청 설정 중 오류
+                Alert.alert('오류', err.message);
+            }
         }
     };
 
@@ -94,10 +119,10 @@ export default function MyPage({ onClose, isVisible }) {
                     <View style={styles.profileContainer}>
                         <TouchableOpacity
                             onPress={() => {
-                                /*if (!isLoggedIn) {
+                                if (!isLoggedIn) {
                                     Alert.alert("로그인 해주세요.");
                                     return;
-                                }*/
+                                }
                                 navigation.navigate('MyProFile');
                             }}
                         >
@@ -114,7 +139,7 @@ export default function MyPage({ onClose, isVisible }) {
                             </Text>
 
                             {isLoggedIn && user.birth && (
-                                <Text style={styles.editProfile}>생년월일: {user.birth}</Text>
+                                <Text style={styles.profileBirthday}>{user.birth}</Text>
                             )}
 
                             {isLoggedIn && (
@@ -130,10 +155,10 @@ export default function MyPage({ onClose, isVisible }) {
                         <TouchableOpacity
                             style={styles.menuItem}
                             onPress={() => {
-                                /*if (!isLoggedIn) {
+                                if (!isLoggedIn) {
                                     Alert.alert("로그인 해주세요.");
                                     return;
-                                }*/
+                                }
                                 navigation.navigate('MyTripLists');
                             }}
                         >
@@ -143,10 +168,10 @@ export default function MyPage({ onClose, isVisible }) {
                         <TouchableOpacity
                             style={styles.menuItem}
                             onPress={() => {
-                                /*if (!isLoggedIn) {
+                                if (!isLoggedIn) {
                                     Alert.alert("로그인 해주세요.");
                                     return;
-                                }*/
+                                }
                                 navigation.navigate('MyReview');
                             }}
                         >
@@ -252,10 +277,15 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#000000',
     },
+    profileBirthday:{
+        fontSize: 12,
+        color: '#808080',
+        marginTop: 3,
+    },
     editProfile: {
         fontSize: 14,
         color: '#808080',
-        marginTop: 5,
+        marginTop: 10,
     },
     menuContainer: {
         marginTop: 10,
@@ -356,4 +386,3 @@ const styles = StyleSheet.create({
         color: '#fff',
     },
 });
-

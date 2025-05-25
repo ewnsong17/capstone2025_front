@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
 import { useEffect } from 'react';
 import axios from 'axios';
 import config from './config';
+import { LoginContext } from './LoginContext';
 
 // 날짜 계산 함수 (period에서 시작일과 종료일을 계산)
 const calculateDays = (startDate, endDate) => {
@@ -22,11 +23,12 @@ const calculateDays = (startDate, endDate) => {
     return Array.from({ length: dayCount }, (_, index) => {
         const currentDay = new Date(start);
         currentDay.setDate(currentDay.getDate() + index);
-        return currentDay.toLocaleDateSQtring(); // 각 날짜 반환
+        return currentDay.toLocaleDateString(); // 각 날짜 반환
     });
 };
 
 const MyTripLists = ({ navigation }) => {
+    const { isLoggedIn } = useContext(LoginContext);
     // 여행 추가된 데이터가 반영될 state
     useEffect(() => {
         const fetchTripList = async () => {
@@ -34,8 +36,10 @@ const MyTripLists = ({ navigation }) => {
                 console.log("🚀 [fetchTripList] 여행 목록 요청 시작");
 
                 const response = await fetch(`${config.api.base_url}/user/myTripList`, {
-                    method: 'GET',
-                    headers: { 'Content-Type': 'application/json' }
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({})
                 });
 
                 const data = await response.json();
@@ -43,19 +47,33 @@ const MyTripLists = ({ navigation }) => {
                 console.log("📦 받은 데이터:", data);
 
                 if (data.result === true && data.trip_list) {
-                    const tripArray = Object.values(data.trip_list);
+                    const now = new Date();
+                    const past = [];
+                    const upcoming = [];
 
-                    // 날짜 비교해서 분리
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
+                    Object.entries(data.trip_list).forEach(([key, trip]) => {
+                        const start = new Date(trip.start_date);
+                        const end = new Date(trip.end_date);
 
-                    const upcoming = tripArray.filter(trip => new Date(trip.end_date) >= today);
-                    const past = tripArray.filter(trip => new Date(trip.end_date) < today);
+                        const period = `${start.toISOString().slice(0, 10)} ~ ${end.toISOString().slice(0, 10)}`;
 
-                    // 상태에 반영
-                    setUpcomingTrips(upcoming);
+                        const parsedTrip = {
+                            id: key,
+                            title: trip.name,
+                            period,
+                            withAI: false, // 필요한 경우 설정
+                            type: end < now ? 'past' : 'upcoming',
+                        };
+
+                        if (parsedTrip.type === 'past') {
+                            past.push(parsedTrip);
+                        } else {
+                            upcoming.push(parsedTrip);
+                        }
+                    });
+
                     setTrips(past);
-                    console.log("✅ 여행 목록 상태 업데이트 완료");
+                    setUpcomingTrips(upcoming);
                 } else {
                     console.warn("❌ 여행 목록 불러오기 실패");
                 }
@@ -63,8 +81,10 @@ const MyTripLists = ({ navigation }) => {
                 console.error("🔥 여행 목록 요청 실패:", error);
             }
         };
+
         fetchTripList();
     }, []);
+
     const route = useRoute();
     const [trips, setTrips] = useState([
         {
@@ -121,9 +141,9 @@ const MyTripLists = ({ navigation }) => {
             const response = await fetch(`${config.api.base_url}/search/myTripRemove`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id })
+                credentials: 'include',
+                body: JSON.stringify({}) // 비어 있어도 POST는 body 필요
             });
-
             const data = await response.json();
             console.log("🌐 삭제 응답:", data);
 
@@ -158,6 +178,20 @@ const MyTripLists = ({ navigation }) => {
     };
     useFocusEffect(
         React.useCallback(() => {
+            if (!isLoggedIn) {
+                Alert.alert(
+                    '로그인이 필요합니다',
+                    '로그인 후 이용해주세요.',
+                    [
+                        {
+                            text: '확인',
+                            onPress: () => navigation.goBack(),
+                        },
+                    ]
+                );
+                return; // 더 진행하지 않도록 early return
+            }
+
             const newTrip = route.params?.newTrip;
             if (newTrip) {
                 if (newTrip.type === 'past') {
@@ -165,11 +199,11 @@ const MyTripLists = ({ navigation }) => {
                 } else {
                     setUpcomingTrips((prev) => [...prev, newTrip]);
                 }
-                // 추가 후 다시 들어올 때 중복 방지
                 route.params.newTrip = null;
             }
-        }, [route.params?.newTrip])
+        }, [route.params?.newTrip, isLoggedIn])
     );
+
 
 
     return (
@@ -193,27 +227,38 @@ const MyTripLists = ({ navigation }) => {
                     <SwipeListView
                         data={upcomingTrips}
                         keyExtractor={(item) => item.id.toString()}
-                        renderItem={({ item }) => (
-                            <TouchableOpacity onPress={() => handleTripPress(item)}>
+                        renderItem={({ item }) => {
+                            console.log("📦 아이템:", item);
+                            return (
                                 <View style={styles.tripItem}>
-                                    <View style={styles.iconContainer}>
-                                        <Text style={styles.tripTitleText}>{item.title}</Text>
-                                        {item.withAI && (
-                                            <Image source={require('./assets/aiIcon.png')} style={styles.aiIcon} />
-                                        )}
-                                    </View>
-                                    <Text style={styles.tripPeriod}>{item.period}</Text>
+                                    <TouchableOpacity onPress={() => handleTripPress(item)}>
+                                        <View style={styles.iconContainer}>
+                                            <Text style={styles.tripTitleText}>{item.title}</Text>
+                                            {item.withAI && (
+                                                <Image
+                                                    source={require('./assets/aiIcon.png')}
+                                                    style={styles.aiIcon}
+                                                />
+                                            )}
+                                        </View>
+                                        <Text style={styles.tripPeriod}>{item.period}</Text>
+                                    </TouchableOpacity>
                                 </View>
-                            </TouchableOpacity>
-                        )}
-                        renderHiddenItem={({ item }) => (
-                            <TouchableOpacity
-                                style={styles.deleteButton}
-                                onPress={() => handleDeleteTrip(item)}
-                            >
-                                <Text style={styles.deleteText}>삭제</Text>
-                            </TouchableOpacity>
-                        )}
+                            );
+                        }}
+                        renderHiddenItem={({ item }) => {
+                            console.log("🧼 슬라이드된 아이템:", item); // 로그 확인
+                            return (
+                                <View style={styles.tripItem}>
+                                    <TouchableOpacity
+                                        style={styles.deleteButton}
+                                        onPress={() => handleDeleteTrip(item)}
+                                    >
+                                        <Text style={styles.deleteText}>삭제</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            );
+                        }}
                         rightOpenValue={-75}
                         disableRightSwipe
                         contentContainerStyle={{ paddingBottom: 100 }}
@@ -223,7 +268,6 @@ const MyTripLists = ({ navigation }) => {
                 )}
             </View>
 
-
             {/* 지난 여행 */}
             <View style={styles.pastTripsSection}>
                 <Text style={styles.pastTripsTitle}>지난 여행</Text>
@@ -232,25 +276,30 @@ const MyTripLists = ({ navigation }) => {
                     data={trips}
                     keyExtractor={(item) => item.id.toString()}
                     renderItem={({ item }) => (
-                        <TouchableOpacity onPress={() => handleTripPress(item)}>
-                            <View style={styles.tripItem}>
+                        <View style={styles.tripItem}>
+                            <TouchableOpacity onPress={() => handleTripPress(item)}>
                                 <View style={styles.iconContainer}>
                                     <Text style={styles.tripTitleText}>{item.title}</Text>
                                     {item.withAI && (
-                                        <Image source={require('./assets/aiIcon.png')} style={styles.aiIcon} />
+                                        <Image
+                                            source={require('./assets/aiIcon.png')}
+                                            style={styles.aiIcon}
+                                        />
                                     )}
                                 </View>
                                 <Text style={styles.tripPeriod}>{item.period}</Text>
-                            </View>
-                        </TouchableOpacity>
+                            </TouchableOpacity>
+                        </View>
                     )}
                     renderHiddenItem={({ item }) => (
-                        <TouchableOpacity
-                            style={styles.deleteButton}
-                            onPress={() => handleDeleteTrip(item)}
-                        >
-                            <Text style={styles.deleteText}>삭제</Text>
-                        </TouchableOpacity>
+                        <View style={styles.tripItem}>
+                            <TouchableOpacity
+                                style={styles.deleteButton}
+                                onPress={() => handleDeleteTrip(item)}
+                            >
+                                <Text style={styles.deleteText}>삭제</Text>
+                            </TouchableOpacity>
+                        </View>
                     )}
                     rightOpenValue={-75}
                     disableRightSwipe

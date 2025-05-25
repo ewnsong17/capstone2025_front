@@ -12,7 +12,7 @@ export const ReviewProvider = ({ children }) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ state: 1 }) // 혹은 state: 2 등 조건 변경 가능
+        body: JSON.stringify({ state: 'mine' }) // 혹은 state: 2 등 조건 변경 가능
       });
 
       const data = await response.json();

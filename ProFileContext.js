@@ -1,14 +1,16 @@
+// ProFileContext.js
 import React, { createContext, useState } from 'react';
 
 export const ProfileContext = createContext();
 
 export const ProfileProvider = ({ children }) => {
-    const [name, setName] = useState('홍길동');
-    const [birthDate, setBirthDate] = useState('2000-01-01');
-    const [profileImage, setProfileImage] = useState(null);
+    const [name, setName] = useState('');
+    const [birthDate, setBirthDate] = useState('');
+    const [email, setEmail] = useState(''); 
+    const [image, setImage] = useState(null);
 
     return (
-        <ProfileContext.Provider value={{ name, setName, birthDate, setBirthDate, profileImage, setProfileImage }}>
+        <ProfileContext.Provider value={{ name, setName, birthDate, setBirthDate, email, setEmail, image, setImage }}>
             {children}
         </ProfileContext.Provider>
     );

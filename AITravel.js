@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
+import config from './config';
 
 export default function AITravel() {
   const navigation = useNavigation(); // 추가
@@ -24,6 +25,7 @@ export default function AITravel() {
   const [tempStartDate, setTempStartDate] = useState(startDate);
   const [tempEndDate, setTempEndDate] = useState(endDate);
   const [city, setCity] = useState('');
+  const [taste, setTaste] = useState('');
   const [aiResponse, setAiResponse] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -75,13 +77,20 @@ export default function AITravel() {
 
     setLoading(true);
     try {
-      const response = await fetch('https://8a6f-223-194-128-97.ngrok-free.app/api/ai', {
+      const response = await fetch(`${config.api.base_url}/search/askAI`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ start_date, end_date, city: city.trim() }),
+        body: JSON.stringify({ start_date: start_date, end_date: end_date, city: city.trim(), taste: taste.trim() }),
       });
+
       const data = await response.json();
-      setAiResponse(data.generatedText || '응답이 없습니다.');
+      console.log(data);
+
+      if (data.result) {
+        setAiResponse(data.answer);
+      } else {
+        setAiResponse('응답이 없습니다.');
+      }
     } catch (error) {
       setAiResponse('서버 요청 중 오류가 발생했습니다.');
       console.error(error);
@@ -97,94 +106,104 @@ export default function AITravel() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
       >
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-        >
-          <View style={styles.responseContainer}>
-            <Text style={styles.responseLabel}>추천 여행 계획</Text>
-            <View style={styles.aiBox}>
-              <Text style={styles.responseText}>{aiResponse}</Text>
-            </View>
+        <View style={styles.container}>
+          <ScrollView
+            style={{ flex: 1 }}
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={styles.responseContainer}>
+              <Text style={styles.responseLabel}>추천 여행 계획</Text>
+              <View style={styles.aiBox}>
+                <Text style={styles.responseText}>{aiResponse}</Text>
+              </View>
 
-            {aiResponse ? (
+              {/* 저장 버튼을 ScrollView 안쪽으로 옮김 */}
+              {aiResponse ? (
+                <TouchableOpacity
+                  style={styles.saveButton}
+                  onPress={() => navigation.navigate('MyTripLists')}
+                >
+                  <Text style={styles.saveButtonText}>내 여행으로 저장</Text>
+                </TouchableOpacity>
+              ) : null}
+            </View>
+          </ScrollView>
+
+          <View style={styles.bottomBar}>
+            <View style={styles.pickerRow}>
               <TouchableOpacity
-                style={styles.saveButton}
-                onPress={() => navigation.navigate('MyTripLists')}
+                onPress={() => {
+                  setShowStartPicker(!showStartPicker);
+                  setShowEndPicker(false);
+                  setTempStartDate(startDate);
+                }}
+                style={styles.dateButton}
               >
-                <Text style={styles.saveButtonText}>내 여행으로 저장</Text>
+                <Text>출발일: {formatDate(startDate)}</Text>
               </TouchableOpacity>
-            ) : null}
-          </View>
-        </ScrollView>
 
-        <View style={styles.bottomBar}>
-          <View style={styles.pickerRow}>
-            <TouchableOpacity
-              onPress={() => {
-                setShowStartPicker(!showStartPicker);
-                setShowEndPicker(false);
-                setTempStartDate(startDate);
-              }}
-              style={styles.dateButton}
-            >
-              <Text>출발일: {formatDate(startDate)}</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => {
-                setShowEndPicker(!showEndPicker);
-                setShowStartPicker(false);
-                setTempEndDate(endDate);
-              }}
-              style={styles.dateButton}
-            >
-              <Text>도착일: {formatDate(endDate)}</Text>
-            </TouchableOpacity>
-          </View>
-
-          {showStartPicker && (
-            <View>
-              <DateTimePicker
-                value={tempStartDate}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
-                onChange={onStartChange}
-              />
-              <Button title="확인" onPress={confirmStartDate} color="#87CEEB" />
+              <TouchableOpacity
+                onPress={() => {
+                  setShowEndPicker(!showEndPicker);
+                  setShowStartPicker(false);
+                  setTempEndDate(endDate);
+                }}
+                style={styles.dateButton}
+              >
+                <Text>도착일: {formatDate(endDate)}</Text>
+              </TouchableOpacity>
             </View>
-          )}
 
-          {showEndPicker && (
-            <View>
-              <DateTimePicker
-                value={tempEndDate}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
-                onChange={onEndChange}
+            {showStartPicker && (
+              <View>
+                <DateTimePicker
+                  value={tempStartDate}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
+                  onChange={onStartChange}
+                />
+                <Button title="확인" onPress={confirmStartDate} color="#87CEEB" />
+              </View>
+            )}
+
+            {showEndPicker && (
+              <View>
+                <DateTimePicker
+                  value={tempEndDate}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'calendar'}
+                  onChange={onEndChange}
+                />
+                <Button title="확인" onPress={confirmEndDate} color="#87CEEB" />
+              </View>
+            )}
+
+            <View style={{ flexDirection: 'row', gap: 10, marginBottom: 12 }}>
+              <TextInput
+                style={[styles.input, { flex: 2 }]}
+                placeholder="여행할 도시를 입력하세요"
+                value={city}
+                onChangeText={setCity}
               />
-              <Button title="확인" onPress={confirmEndDate} color="#87CEEB" />
+              <TextInput
+                style={[styles.input, { flex: 1 }]}
+                placeholder="취향"
+                value={taste}
+                onChangeText={setTaste}
+              />
             </View>
-          )}
-
-          <TextInput
-            style={styles.input}
-            placeholder="여행할 도시를 입력하세요"
-            value={city}
-            onChangeText={setCity}
-          />
-          <Button
-            title={loading ? '응답 중...' : 'S E N D'}
-            onPress={sendToAI}
-            disabled={loading}
-            color="purple"
-          />
+            <Button
+              title={loading ? '응답 중...' : 'S E N D'}
+              onPress={sendToAI}
+              disabled={loading}
+              color="purple"
+            />
+          </View>
         </View>
       </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
-
 }
 
 const styles = StyleSheet.create({

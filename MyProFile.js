@@ -1,39 +1,39 @@
 import React, { useState, useContext } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import * as ImagePicker from 'expo-image-picker'; // expo 환경이라면 이거 사용
-import Header from './Header'; 
+import * as ImagePicker from 'expo-image-picker';
+import Header from './Header';
 import { ProfileContext } from './ProFileContext';
 
 export default function MyProFile({ navigation }) {
-    const { name, setName, birthDate, setBirthDate, profileImage, setProfileImage } = useContext(ProfileContext);
+    const { name, birthDate, setBirthDate, profileImage, setProfileImage } = useContext(ProfileContext);
     const [showDatePicker, setShowDatePicker] = useState(false);
 
     const handleImagePick = async () => {
-    // 권한 요청
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-        alert('사진 접근 권한이 필요합니다.');
-        return;
-    }
+        // 권한 요청
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+            alert('사진 접근 권한이 필요합니다.');
+            return;
+        }
 
-    // 이미지 선택 모듈 실행
-    const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 1,
-    });
+        // 이미지 선택 모듈 실행
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 1,
+        });
 
-    if (!result.canceled) {
-        setProfileImage(result.assets[0].uri);
-    }
+        if (!result.canceled) {
+            setProfileImage(result.assets[0].uri);
+        }
     };
 
     return (
         <View style={styles.container}>
             {/* Header 고정 */}
-                <View style={styles.headerWrapper}>
+            <View style={styles.headerWrapper}>
                 <Header
                     onLogoPress={() => navigation.navigate('MainApp')}
                     simple={true}
@@ -52,12 +52,11 @@ export default function MyProFile({ navigation }) {
                 />
             </TouchableOpacity>
 
-            {/* 이름 수정 */}
+            {/* 이름 */}
             <TextInput
                 style={styles.input}
                 value={name}
-                onChangeText={setName}
-                placeholder="이름을 입력하세요"
+                editable={false}
             />
 
             {/* 생년월일 */}

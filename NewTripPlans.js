@@ -48,7 +48,7 @@ const NewTripPlans = ({ navigation, route }) => {
         try {
             console.log("🚀 [Trip Add] 여행 추가 요청:", requestBody);
 
-            const response = await fetch(`${config.api.base_url}/search/myTripAdd`, {
+            const response = await fetch(`${config.api.base_url}/user/myTripAdd`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(requestBody)

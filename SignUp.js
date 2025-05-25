@@ -1,27 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import axios from 'axios';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, TouchableWithoutFeedback, Keyboard, navigation } from 'react-native';
+import config from './config';
+import { ProfileContext } from './ProFileContext';
 
-export default function SignUp() {
+export default function SignUp({ navigation }) {
     const [name, setName] = useState('');
     const [birthDate, setBirthDate] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    // 회원가입 버튼 클릭 시 실행되는 함수
+    const {
+        setName: setContextName,
+        setBirthDate: setContextBirthDate,
+        setEmail: setContextEmail,
+        setImage: setContextImage,
+    } = useContext(ProfileContext);
+
     const handleSignUp = async () => {
         try {
-            const response = await axios.post('http://192.168.199.116:3000/user/signup', {
-                id: email,
-                pwd: password,
+            const response = await axios.post(`${config.api.base_url}/user/signup`, {
+                email,
+                password,
+                birthday: birthDate,
+                name,
             });
 
             if (response.data.result) {
+                setContextName(name);
+                setContextBirthDate(birthDate);
+                setContextEmail(email);
+
+                // 기본 이미지가 없으면 null, 기본 이미지 URL로 대체 가능
+                const defaultImageOrUserImage = null; // 필요하면 수정하세요
+                setContextImage(defaultImageOrUserImage);
+
                 Alert.alert('회원가입 성공');
                 navigation.goBack();
             } else {
                 Alert.alert('회원가입 실패', response.data.exception || '이미 존재하는 계정입니다.');
             }
+
         } catch (err) {
             console.error(err);
             Alert.alert('서버 오류', '통신에 실패했습니다.');
@@ -41,7 +60,7 @@ export default function SignUp() {
                 />
                 <TextInput
                     style={styles.input}
-                    placeholder="생년월일 (YYMMDD)"
+                    placeholder="생년월일 (YYYY-MM-DD)"
                     value={birthDate}
                     onChangeText={setBirthDate}
                 />
