@@ -94,10 +94,10 @@ export default function MyPage({ onClose, isVisible }) {
                     <View style={styles.profileContainer}>
                         <TouchableOpacity
                             onPress={() => {
-                                if (!isLoggedIn) {
+                                /*if (!isLoggedIn) {
                                     Alert.alert("로그인 해주세요.");
                                     return;
-                                }
+                                }*/
                                 navigation.navigate('MyProFile');
                             }}
                         >
@@ -130,10 +130,10 @@ export default function MyPage({ onClose, isVisible }) {
                         <TouchableOpacity
                             style={styles.menuItem}
                             onPress={() => {
-                                if (!isLoggedIn) {
+                                /*if (!isLoggedIn) {
                                     Alert.alert("로그인 해주세요.");
                                     return;
-                                }
+                                }*/
                                 navigation.navigate('MyTripLists');
                             }}
                         >
@@ -143,10 +143,10 @@ export default function MyPage({ onClose, isVisible }) {
                         <TouchableOpacity
                             style={styles.menuItem}
                             onPress={() => {
-                                if (!isLoggedIn) {
+                                /*if (!isLoggedIn) {
                                     Alert.alert("로그인 해주세요.");
                                     return;
-                                }
+                                }*/
                                 navigation.navigate('MyReview');
                             }}
                         >

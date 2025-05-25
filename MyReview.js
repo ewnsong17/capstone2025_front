@@ -1,9 +1,9 @@
-import React, { useContext, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, Modal, TextInput, StyleSheet, TouchableWithoutFeedback, Keyboard } from 'react-native';
-import { ReviewContext } from './ReviewContext';
+import { useReview } from './ReviewContext';
 
 export default function MyReview() {
-    const { reviews, updateReview, deleteReview } = useContext(ReviewContext);
+    const { reviews, fetchReviewsFromServer, updateReview, deleteReview } = useReview();
     const [selectedReview, setSelectedReview] = useState(null);
     const [editContent, setEditContent] = useState('');
     const [modalVisible, setModalVisible] = useState(false);
@@ -39,6 +39,9 @@ export default function MyReview() {
         </TouchableOpacity>
     );
 
+    useEffect(() => {
+        fetchReviewsFromServer();
+    }, []);
 
     console.log("리뷰 데이터:", reviews);
 

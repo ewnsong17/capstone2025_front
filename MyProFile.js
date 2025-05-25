@@ -1,4 +1,4 @@
-import React, { useState} from 'react';
+import React, { useState, useContext } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, TextInput } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import * as ImagePicker from 'expo-image-picker'; // expo 환경이라면 이거 사용

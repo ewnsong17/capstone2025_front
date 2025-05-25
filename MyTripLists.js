@@ -1,5 +1,49 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
+import { SwipeListView } from 'react-native-swipe-list-view';
+import { useFocusEffect, useRoute } from '@react-navigation/native';
+import { useEffect } from 'react';
+import axios from 'axios';
+
+const fetchTripList = async () => {
+    try {
+        console.log("🚀 [fetchTripList] 여행 목록 요청 시작");
+
+        const response = await fetch(`${config.api.base_url}/user/myTripList`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        const data = await response.json();
+        console.log("🌐 응답 상태 코드:", response.status);
+        console.log("📦 받은 데이터:", data);
+
+        if (data.result === true && data.trip_list) {
+            const tripArray = Object.values(data.trip_list);
+
+            // 날짜 비교해서 분리
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const upcoming = tripArray.filter(trip => new Date(trip.end_date) >= today);
+            const past = tripArray.filter(trip => new Date(trip.end_date) < today);
+
+            // 상태에 반영
+            setUpcomingTrips(upcoming);
+            setTrips(past);
+            console.log("✅ 여행 목록 상태 업데이트 완료");
+        } else {
+            console.warn("❌ 여행 목록 불러오기 실패");
+        }
+    } catch (error) {
+        console.error("🔥 여행 목록 요청 실패:", error);
+    }
+};
+
+useEffect(() => {
+    fetchTripList();
+}, []);
+
 
 // 날짜 계산 함수 (period에서 시작일과 종료일을 계산)
 const calculateDays = (startDate, endDate) => {
@@ -23,14 +67,17 @@ const calculateDays = (startDate, endDate) => {
 
 const MyTripLists = ({ navigation }) => {
     // 여행 추가된 데이터가 반영될 state
+    const route = useRoute();
     const [trips, setTrips] = useState([
         {
+            id: '1',
             title: 'A 여행',
             period: '2023-05-01 ~ 2023-05-03',
             withAI: false,
             type: 'past',
         },
         {
+            id: '2',
             title: 'B 여행',
             period: '2023-06-01 ~ 2023-06-05',
             withAI: true,
@@ -49,6 +96,46 @@ const MyTripLists = ({ navigation }) => {
             tripPeriod: trip.period,
         });
     };
+
+    //슬라이드 시 여행 삭제 가능 함수
+    const handleDeleteTrip = async (tripToDelete) => {
+        const deleted = await deleteTripFromServer(tripToDelete.id);
+        if (!deleted) {
+            Alert.alert('삭제 실패', '서버에서 여행을 삭제하지 못했습니다.');
+            return;
+        }
+
+        if (tripToDelete.type === 'past') {
+            setTrips((prev) => prev.filter((trip) => trip.id !== tripToDelete.id));
+        } else {
+            setUpcomingTrips((prev) => prev.filter((trip) => trip.id !== tripToDelete.id));
+        }
+
+        console.log("✅ 로컬 상태에서도 삭제 완료");
+    };
+
+
+    //서버에 여행 삭제 요청 보내기
+    const deleteTripFromServer = async (id) => {
+        try {
+            console.log(`🚀 [Trip Delete] 여행 ID ${id} 삭제 요청`);
+
+            const response = await fetch(`${config.api.base_url}/search/myTripRemove`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id })
+            });
+
+            const data = await response.json();
+            console.log("🌐 삭제 응답:", data);
+
+            return data.result === true;
+        } catch (error) {
+            console.error("🔥 [Trip Delete] 삭제 요청 실패:", error);
+            return false;
+        }
+    };
+
 
     // 새로운 여행 추가 함수
     const handleAddTrip = (newTrip) => {
@@ -71,8 +158,24 @@ const MyTripLists = ({ navigation }) => {
             });
         }
     };
+    useFocusEffect(
+        React.useCallback(() => {
+            const newTrip = route.params?.newTrip;
+            if (newTrip) {
+                if (newTrip.type === 'past') {
+                    setTrips((prev) => [...prev, newTrip]);
+                } else {
+                    setUpcomingTrips((prev) => [...prev, newTrip]);
+                }
+                // 추가 후 다시 들어올 때 중복 방지
+                route.params.newTrip = null;
+            }
+        }, [route.params?.newTrip])
+    );
+
 
     return (
+
         <View style={styles.container}>
             {/* 여행 계획 세우기 버튼 */}
             <View style={styles.planSection}>
@@ -88,60 +191,73 @@ const MyTripLists = ({ navigation }) => {
             <View style={styles.upcomingTripsSection}>
                 <Text style={styles.upcomingTripsTitle}>다가오는 여행</Text>
 
-                {/* 다가오는 여행 목록 렌더링 */}
                 {upcomingTrips.length > 0 ? (
-                    upcomingTrips.map((trip, index) => {
-                        const [startDate, endDate] = trip.period.split(' ~ '); // period에서 시작일과 종료일 분리
-                        const days = calculateDays(startDate, endDate); // 날짜 계산
-
-                        return (
-                            <TouchableOpacity
-                                key={index}
-                                onPress={() => handleTripPress(trip)}
-                            >
+                    <SwipeListView
+                        data={upcomingTrips}
+                        keyExtractor={(item) => item.id.toString()}
+                        renderItem={({ item }) => (
+                            <TouchableOpacity onPress={() => handleTripPress(item)}>
                                 <View style={styles.tripItem}>
                                     <View style={styles.iconContainer}>
-                                        <Text style={styles.tripTitleText}>{trip.title}</Text>
-                                        {trip.withAI && (
+                                        <Text style={styles.tripTitleText}>{item.title}</Text>
+                                        {item.withAI && (
                                             <Image source={require('./assets/aiIcon.png')} style={styles.aiIcon} />
                                         )}
                                     </View>
-                                    <Text style={styles.tripPeriod}>{trip.period}</Text>
+                                    <Text style={styles.tripPeriod}>{item.period}</Text>
                                 </View>
                             </TouchableOpacity>
-                        );
-                    })
+                        )}
+                        renderHiddenItem={({ item }) => (
+                            <TouchableOpacity
+                                style={styles.deleteButton}
+                                onPress={() => handleDeleteTrip(item)}
+                            >
+                                <Text style={styles.deleteText}>삭제</Text>
+                            </TouchableOpacity>
+                        )}
+                        rightOpenValue={-75}
+                        disableRightSwipe
+                        contentContainerStyle={{ paddingBottom: 100 }}
+                    />
                 ) : (
                     <Text style={styles.noTripsText}>No upcoming trips yet.</Text>
                 )}
             </View>
 
+
             {/* 지난 여행 */}
             <View style={styles.pastTripsSection}>
                 <Text style={styles.pastTripsTitle}>지난 여행</Text>
 
-                {/* 반복문으로 여행 목록 렌더링 */}
-                {trips.map((trip, index) => {
-                    const [startDate, endDate] = trip.period.split(' ~ '); // period에서 시작일과 종료일 분리
-                    const days = calculateDays(startDate, endDate); // 날짜 계산
-
-                    return (
-                        <TouchableOpacity
-                            key={index}
-                            onPress={() => handleTripPress(trip)}
-                        >
+                <SwipeListView
+                    data={trips}
+                    keyExtractor={(item) => item.id.toString()}
+                    renderItem={({ item }) => (
+                        <TouchableOpacity onPress={() => handleTripPress(item)}>
                             <View style={styles.tripItem}>
                                 <View style={styles.iconContainer}>
-                                    <Text style={styles.tripTitleText}>{trip.title}</Text>
-                                    {trip.withAI && (
+                                    <Text style={styles.tripTitleText}>{item.title}</Text>
+                                    {item.withAI && (
                                         <Image source={require('./assets/aiIcon.png')} style={styles.aiIcon} />
                                     )}
                                 </View>
-                                <Text style={styles.tripPeriod}>{trip.period}</Text>
+                                <Text style={styles.tripPeriod}>{item.period}</Text>
                             </View>
                         </TouchableOpacity>
-                    );
-                })}
+                    )}
+                    renderHiddenItem={({ item }) => (
+                        <TouchableOpacity
+                            style={styles.deleteButton}
+                            onPress={() => handleDeleteTrip(item)}
+                        >
+                            <Text style={styles.deleteText}>삭제</Text>
+                        </TouchableOpacity>
+                    )}
+                    rightOpenValue={-75}
+                    disableRightSwipe
+                    contentContainerStyle={{ paddingBottom: 100 }}
+                />
             </View>
         </View>
     );
@@ -218,6 +334,22 @@ const styles = StyleSheet.create({
     iconContainer: {
         flexDirection: 'row',
         alignItems: 'center',
+    },
+    deleteButton: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'red',
+        height: '75%',
+        width: 75,
+        position: 'absolute',
+        right: 0,
+        top: 0,
+        bottom: 0,
+        borderRadius: 8,
+    },
+    deleteText: {
+        color: 'white',
+        fontWeight: 'bold',
     },
 });
 
