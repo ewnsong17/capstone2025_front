@@ -111,12 +111,18 @@ const NewTripPlans = ({ navigation, route }) => {
                 <DateTimePickerModal
                     isVisible={isEndPickerVisible}
                     mode="date"
+                    minimumDate={startDate ? new Date(startDate) : undefined} // ✅ 오는 날은 가는 날 이후부터
                     onConfirm={(date) => {
+                        if (startDate && date < new Date(startDate)) {
+                            alert("오는 날은 가는 날보다 늦어야 합니다.");
+                            return;
+                        }
                         setEndDate(date);
                         setEndPickerVisible(false);
                     }}
                     onCancel={() => setEndPickerVisible(false)}
                 />
+
 
                 <TouchableOpacity style={styles.completeButton} onPress={handleSaveTrip}>
                     <Text style={styles.completeButtonText}>완료</Text>

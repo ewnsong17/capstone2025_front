@@ -15,6 +15,9 @@ const App = ({ setCurrentScreen, selectedDate, returnDate, setReturnDate, select
   const [bannerList, setBannerList] = useState([]);
   const [packageList, setPackageList] = useState([]);
   const [showReturnDatePicker, setShowReturnDatePicker] = useState(false);
+  const [reopenGoDatePicker, setReopenGoDatePicker] = useState(false);
+  const [reopenReturnDatePicker, setReopenReturnDatePicker] = useState(false);
+
 
   useEffect(() => {
     fetch(`${config.api.base_url}/main/banners`, {
@@ -50,6 +53,20 @@ const App = ({ setCurrentScreen, selectedDate, returnDate, setReturnDate, select
       .catch(err => console.error("추천 패키지 이미지 불러오기 실패:", err));
   }, []);
 
+  useEffect(() => {
+    if (reopenGoDatePicker) {
+      setShowDatePicker(true);
+      setReopenGoDatePicker(false);
+    }
+  }, [reopenGoDatePicker]);
+
+  useEffect(() => {
+    if (reopenReturnDatePicker) {
+      setShowReturnDatePicker(true);
+      setReopenReturnDatePicker(false);
+    }
+  }, [reopenReturnDatePicker]);
+
   if (!fontLoaded) {
     return <Text>Loading...</Text>;
   }
@@ -80,7 +97,6 @@ const App = ({ setCurrentScreen, selectedDate, returnDate, setReturnDate, select
         ))}
 
       </ScrollView>
-
       {/* PLACE & DATE 버튼 */}
       <View style={styles.buttonContainer}>
         {/* PLACE 버튼 */}
@@ -116,13 +132,9 @@ const App = ({ setCurrentScreen, selectedDate, returnDate, setReturnDate, select
         <DateTimePickerModal
           isVisible={showDatePicker}
           mode="date"
+          maximumDate={returnDate ? new Date(returnDate) : undefined} // 오는 날 이전까지만 선택 가능
           onConfirm={(date) => {
             const selectedGo = date.toISOString().split('T')[0];
-            if (returnDate && selectedGo > returnDate) {
-              alert('가는 날은 오는 날보다 앞서야 합니다.');
-              setShowDatePicker(false);
-              return;
-            }
             setSelectedDate(selectedGo);
             setShowDatePicker(false);
           }}
@@ -132,13 +144,9 @@ const App = ({ setCurrentScreen, selectedDate, returnDate, setReturnDate, select
         <DateTimePickerModal
           isVisible={showReturnDatePicker}
           mode="date"
+          minimumDate={selectedDate ? new Date(selectedDate) : undefined}
           onConfirm={(date) => {
             const selectedReturn = date.toISOString().split('T')[0];
-            if (selectedDate && selectedReturn < selectedDate) {
-              alert('오는 날은 가는 날보다 늦어야 합니다.');
-              setShowReturnDatePicker(false);
-              return;
-            }
             setReturnDate(selectedReturn);
             setShowReturnDatePicker(false);
           }}

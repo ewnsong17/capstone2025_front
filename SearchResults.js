@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, TextInput, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import config from './config';
 
 export default function SearchResults() {
-    const [selectedCategory, setSelectedCategory] = useState('콘서트'); // 패키지의 카테고리
+    const [selectedCategory, setSelectedCategory] = useState('전체'); // 선택된 버튼에는 영향 없음
     const [showFilter, setShowFilter] = useState(false); // 필터 팝업 상태
     const [selectedFilterCategory, setSelectedFilterCategory] = useState(null); // 필터에서 선택한 카테고리
     const [minPrice, setMinPrice] = useState('');
     const [maxPrice, setMaxPrice] = useState('');
 
-    const categories = ['콘서트', '뮤지컬', '스포츠'];
+    const categories = ['전체', '콘서트', '뮤지컬', '스포츠'];
     const [packageList, setPackageList] = useState([]); // 패키지 리스트 (필터링된 결과를 저장할 상태)
 
     const fetchFilteredPackages = async () => {
@@ -113,6 +113,45 @@ export default function SearchResults() {
         setMaxPrice('');
     };
 
+    // 🔥 useEffect 밖에서 먼저 정의
+    const fetchAllPackages = async () => {
+        const allTypes = [1, 2, 3];
+        let allResults = [];
+
+        for (let type of allTypes) {
+            try {
+                const response = await fetch(`${config.api.base_url}/search/results`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: type,
+                        min_price: 0,
+                        max_price: 9999999
+                    })
+                });
+
+                const data = await response.json();
+                if (data.result) {
+                    const updatedList = data.result_list.map(pkg => ({
+                        ...pkg,
+                        image: pkg.image || "http://tkfile.yes24.com/upload2/PerfBlog/202505/20250508/20250508-53433.jpg"
+                    }));
+                    allResults = [...allResults, ...updatedList];
+                }
+            } catch (err) {
+                console.error(`🔥 [fetchAllPackages] 타입 ${type} 요청 실패:`, err);
+            }
+        }
+
+        setPackageList(allResults);
+        console.log("✅ 모든 타입의 패키지 합쳐서 로딩 완료", allResults.length);
+    };
+
+    // 👇 컴포넌트 처음 로드 시 1번 실행
+    useEffect(() => {
+        fetchAllPackages();
+    }, []);
+
     return (
         <View style={styles.container}>
 
@@ -136,10 +175,15 @@ export default function SearchResults() {
                             const typeMap = {
                                 '콘서트': 1,
                                 '뮤지컬': 2,
-                                '스포츠': 3
+                                '스포츠': 3,
                             };
-                            const mappedType = typeMap[category];
-                            fetchPackages(mappedType);
+                            if (category === '전체') {
+                                // 전체 클릭 시, 모든 패키지 다시 불러오기
+                                fetchAllPackages();
+                            } else {
+                                const mappedType = typeMap[category];
+                                fetchPackages(mappedType);
+                            }
                         }}
                     >
                         <Text style={[styles.text, { fontWeight: 'normal' }]}>{category}</Text>

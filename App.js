@@ -27,6 +27,7 @@ function MainApp({ navigation }) {
     const [showMyPage, setShowMyPage] = useState(false);
     const [selectedDate, setSelectedDate] = useState(null);
     const [selectedPlace, setSelectedPlace] = useState(null);
+    const [returnDate, setReturnDate] = useState(null);
 
     return (
         <View style={styles.container}>
@@ -41,8 +42,10 @@ function MainApp({ navigation }) {
                     setCurrentScreen={setCurrentScreen}
                     selectedDate={selectedDate}
                     selectedPlace={selectedPlace}
+                    returnDate={returnDate}
                     setSelectedDate={setSelectedDate}
                     setSelectedPlace={setSelectedPlace}
+                    setReturnDate={setReturnDate}
                 />
             )}
 

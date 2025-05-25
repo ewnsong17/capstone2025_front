@@ -1,9 +1,8 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, Alert, ScrollView} from 'react-native';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
 import { useEffect } from 'react';
-import axios from 'axios';
 import config from './config';
 import { LoginContext } from './LoginContext';
 
@@ -138,11 +137,11 @@ const MyTripLists = ({ navigation }) => {
         try {
             console.log(`🚀 [Trip Delete] 여행 ID ${id} 삭제 요청`);
 
-            const response = await fetch(`${config.api.base_url}/search/myTripRemove`, {
+            const response = await fetch(`${config.api.base_url}/user/myTripRemove`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 credentials: 'include',
-                body: JSON.stringify({}) // 비어 있어도 POST는 body 필요
+                body: JSON.stringify({ id }) // 비어 있어도 POST는 body 필요
             });
             const data = await response.json();
             console.log("🌐 삭제 응답:", data);
@@ -207,8 +206,7 @@ const MyTripLists = ({ navigation }) => {
 
 
     return (
-
-        <View style={styles.container}>
+        <ScrollView style={styles.container}>
             {/* 여행 계획 세우기 버튼 */}
             <View style={styles.planSection}>
                 <TouchableOpacity
@@ -227,38 +225,30 @@ const MyTripLists = ({ navigation }) => {
                     <SwipeListView
                         data={upcomingTrips}
                         keyExtractor={(item) => item.id.toString()}
-                        renderItem={({ item }) => {
-                            console.log("📦 아이템:", item);
-                            return (
-                                <View style={styles.tripItem}>
-                                    <TouchableOpacity onPress={() => handleTripPress(item)}>
-                                        <View style={styles.iconContainer}>
-                                            <Text style={styles.tripTitleText}>{item.title}</Text>
-                                            {item.withAI && (
-                                                <Image
-                                                    source={require('./assets/aiIcon.png')}
-                                                    style={styles.aiIcon}
-                                                />
-                                            )}
-                                        </View>
-                                        <Text style={styles.tripPeriod}>{item.period}</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            );
-                        }}
-                        renderHiddenItem={({ item }) => {
-                            console.log("🧼 슬라이드된 아이템:", item); // 로그 확인
-                            return (
-                                <View style={styles.tripItem}>
-                                    <TouchableOpacity
-                                        style={styles.deleteButton}
-                                        onPress={() => handleDeleteTrip(item)}
-                                    >
-                                        <Text style={styles.deleteText}>삭제</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            );
-                        }}
+                        renderItem={({ item }) => (
+                            <View style={styles.tripItem}>
+                                <TouchableOpacity onPress={() => handleTripPress(item)}>
+                                    <View style={styles.iconContainer}>
+                                        <Text style={styles.tripTitleText}>{item.title}</Text>
+                                        {item.withAI && (
+                                            <Image source={require('./assets/aiIcon.png')} style={styles.aiIcon} />
+                                        )}
+                                    </View>
+                                    <Text style={styles.tripPeriod}>{item.period}</Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
+                        renderHiddenItem={({ item }) => (
+                            <View style={styles.hiddenItem}>
+                                <TouchableOpacity
+                                    style={styles.deleteButton}
+                                    onPress={() => handleDeleteTrip(item)}
+                                >
+                                    <Text style={styles.deleteText}>삭제</Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
+                        scrollEnabled={false} // ✅ 추가
                         rightOpenValue={-75}
                         disableRightSwipe
                         contentContainerStyle={{ paddingBottom: 100 }}
@@ -281,10 +271,7 @@ const MyTripLists = ({ navigation }) => {
                                 <View style={styles.iconContainer}>
                                     <Text style={styles.tripTitleText}>{item.title}</Text>
                                     {item.withAI && (
-                                        <Image
-                                            source={require('./assets/aiIcon.png')}
-                                            style={styles.aiIcon}
-                                        />
+                                        <Image source={require('./assets/aiIcon.png')} style={styles.aiIcon} />
                                     )}
                                 </View>
                                 <Text style={styles.tripPeriod}>{item.period}</Text>
@@ -292,7 +279,7 @@ const MyTripLists = ({ navigation }) => {
                         </View>
                     )}
                     renderHiddenItem={({ item }) => (
-                        <View style={styles.tripItem}>
+                        <View style={styles.hiddenItem}>
                             <TouchableOpacity
                                 style={styles.deleteButton}
                                 onPress={() => handleDeleteTrip(item)}
@@ -301,13 +288,15 @@ const MyTripLists = ({ navigation }) => {
                             </TouchableOpacity>
                         </View>
                     )}
+                    scrollEnabled={false} // ✅ 이것도 추가
                     rightOpenValue={-75}
                     disableRightSwipe
                     contentContainerStyle={{ paddingBottom: 100 }}
                 />
             </View>
-        </View>
+        </ScrollView>
     );
+
 };
 
 const styles = StyleSheet.create({
@@ -364,6 +353,7 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowOffset: { width: 0, height: 2 },
         shadowRadius: 4,
+        overflow: 'hidden',
     },
     tripTitleText: {
         fontSize: 18,
@@ -398,6 +388,13 @@ const styles = StyleSheet.create({
         color: 'white',
         fontWeight: 'bold',
     },
+    hiddenItem: {
+        flex: 1,
+        justifyContent: 'flex-end',
+        alignItems: 'flex-end',
+        paddingRight: 10,
+    },
+
 });
 
 export default MyTripLists;

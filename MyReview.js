@@ -9,81 +9,90 @@ export default function MyReview() {
     const [modalVisible, setModalVisible] = useState(false);
 
     const openModal = (review) => {
+        if (!review) return;
         setSelectedReview(review);
-        setEditContent(review.content);
+        setEditContent(review.comment);
         setModalVisible(true);
     };
 
     const closeModal = () => {
         setModalVisible(false);
-        setSelectedReview(null);
-        setEditContent('');
+        setTimeout(() => {
+            setSelectedReview(null);
+            setEditContent('');
+        }, 300);
     };
 
     const handleUpdate = () => {
+        if (!selectedReview) return;
         updateReview(selectedReview.id, editContent);
         closeModal();
     };
 
     const handleDelete = () => {
+        if (!selectedReview) return;
         deleteReview(selectedReview.id);
         closeModal();
     };
 
-    const renderItem = ({ item }) => (
-        <TouchableOpacity style={styles.card} onPress={() => openModal(item)}>
-            <Text style={styles.cardText}>{item.location} | {item.title}</Text>
-            <Text style={styles.cardContent} numberOfLines={2} ellipsizeMode="tail">
-                {item.content}
-            </Text>
-        </TouchableOpacity>
-    );
+    const renderItem = ({ item }) => {
+        if (!item) return null;
+
+        return (
+            <TouchableOpacity style={styles.card} onPress={() => openModal(item)}>
+                <Text style={styles.cardText}>{item.country} | {item.name}</Text>
+                <Text style={styles.cardContent} numberOfLines={2} ellipsizeMode="tail">
+                    {item.comment}
+                </Text>
+            </TouchableOpacity>
+        );
+    };
 
     useEffect(() => {
         fetchReviewsFromServer();
     }, []);
-
-    console.log("리뷰 데이터:", reviews);
 
     return (
         <View style={styles.container}>
             <Text style={styles.title}>내 리뷰</Text>
 
             <FlatList
-                data={reviews}
-                keyExtractor={(item) => item.id}
+                data={reviews.filter(r => r !== null)}
+                keyExtractor={(item) => item.id.toString()}
                 renderItem={renderItem}
                 contentContainerStyle={styles.list}
             />
 
-            <Modal visible={modalVisible} transparent animationType="fade">
-                <TouchableWithoutFeedback onPress={closeModal}>
-                    <View style={styles.modalOverlay}>
-                        <TouchableWithoutFeedback onPress={() => { }}>
-                            <View style={styles.modalContent}>
-                                <Text style={styles.modalTitle}>{selectedReview?.title}</Text>
-                                <TextInput
-                                    style={styles.modalInput}
-                                    multiline
-                                    value={editContent}
-                                    onChangeText={setEditContent}
-                                />
-
-                                <View style={styles.buttonRow}>
-                                    <TouchableOpacity onPress={handleUpdate} style={styles.modalButton}>
-                                        <Text>수정</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={handleDelete} style={styles.modalButton}>
-                                        <Text>삭제</Text>
-                                    </TouchableOpacity>
+            {modalVisible && selectedReview && (
+                <Modal visible={modalVisible} transparent animationType="fade">
+                    <TouchableWithoutFeedback onPress={closeModal}>
+                        <View style={styles.modalOverlay}>
+                            <TouchableWithoutFeedback onPress={() => { }}>
+                                <View style={styles.modalContent}>
+                                    <Text style={styles.modalTitle}>{selectedReview.title}</Text>
+                                    <TextInput
+                                        style={styles.modalInput}
+                                        multiline
+                                        value={editContent}
+                                        onChangeText={setEditContent}
+                                    />
+                                    <View style={styles.buttonRow}>
+                                        <TouchableOpacity onPress={handleUpdate} style={styles.modalButton}>
+                                            <Text>수정</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity onPress={handleDelete} style={styles.modalButton}>
+                                            <Text>삭제</Text>
+                                        </TouchableOpacity>
+                                    </View>
                                 </View>
-                            </View>
-                        </TouchableWithoutFeedback>
-                    </View>
-                </TouchableWithoutFeedback>
-            </Modal>
+                            </TouchableWithoutFeedback>
+                        </View>
+                    </TouchableWithoutFeedback>
+                </Modal>
+            )}
         </View>
     );
+
 }
 
 const styles = StyleSheet.create({

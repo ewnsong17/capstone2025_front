@@ -17,10 +17,17 @@ export const ReviewProvider = ({ children }) => {
 
       const data = await response.json();
       if (data.result) {
-        setReviews(data.review_list);
-        console.log("✅ 리뷰 목록 불러오기 성공");
+        const reviewList = data.review_list;
+
+        // reviewList가 배열이 아니라 객체일 경우: Object.values로 변환
+        const parsedList = Array.isArray(reviewList)
+          ? reviewList
+          : Object.values(reviewList);
+
+        setReviews(parsedList);
+        console.log("✅ 리뷰 목록 불러오기 성공", parsedList);
       } else {
-        console.warn("❌ 리뷰 목록 불러오기 실패", data);
+        console.warn("❌ 리뷰 목록 불러오기 실패", data.review_list);
       }
     } catch (err) {
       console.error("🔥 서버 연결 실패 (리뷰 목록):", err);
@@ -29,7 +36,7 @@ export const ReviewProvider = ({ children }) => {
 
   const updateReview = async (id, content) => {
     try {
-      const response = await fetch(`${config.api.base_url}/user/reviewUpdate`, {
+      const response = await fetch(`${config.api.base_url}/user/reviewModify`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -39,7 +46,7 @@ export const ReviewProvider = ({ children }) => {
       const data = await response.json();
       if (data.result) {
         setReviews(prev =>
-          prev.map(r => (r.id === id ? { ...r, content } : r))
+          prev.map(r => (r.id === id ? { ...r, comment: content } : r))
         );
         console.log("✅ 리뷰 수정 완료");
       } else {
