@@ -19,6 +19,7 @@ import TripDetails from './TripDetails';
 import TripReservation from './TripReservation';
 import MyReview from './MyReview'
 import NewTripPlans from './NewTripPlans';
+import SearchFilteredResults from './SearchFilteredResults';
 
 const Stack = createStackNavigator();
 
@@ -101,6 +102,7 @@ export default function App() {
                                     <Stack.Screen name="TripDetails" component={TripDetails} />
                                     <Stack.Screen name="TripReservation" component={TripReservation} />
                                     <Stack.Screen name="MyReview" component={MyReview} />
+                                    <Stack.Screen name="SearchFilteredResults" component={SearchFilteredResults} />
                                 </Stack.Navigator>
                             </NavigationContainer>
                         </ReviewProvider>

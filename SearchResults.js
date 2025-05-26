@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, TextInput, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import config from './config';
+import { useNavigation } from '@react-navigation/native';
 
 export default function SearchResults() {
     const [selectedCategory, setSelectedCategory] = useState('전체'); // 선택된 버튼에는 영향 없음
@@ -8,7 +9,7 @@ export default function SearchResults() {
     const [selectedFilterCategory, setSelectedFilterCategory] = useState(null); // 필터에서 선택한 카테고리
     const [minPrice, setMinPrice] = useState('');
     const [maxPrice, setMaxPrice] = useState('');
-
+    const navigation = useNavigation();
     const categories = ['전체', '콘서트', '뮤지컬', '스포츠'];
     const [packageList, setPackageList] = useState([]); // 패키지 리스트 (필터링된 결과를 저장할 상태)
 
@@ -16,8 +17,8 @@ export default function SearchResults() {
         if (!selectedFilterCategory || !minPrice || !maxPrice) return;
 
         const typeMap = {
-            '콘서트': 1,
-            '뮤지컬': 2,
+            '뮤지컬': 1,
+            '콘서트': 2,
             '스포츠': 3
         };
         const mappedType = typeMap[selectedFilterCategory];
@@ -103,10 +104,26 @@ export default function SearchResults() {
         console.log("💡 [applyFilter] 필터 적용 버튼 클릭됨");
         console.log("👉 선택된 카테고리:", selectedFilterCategory);
         console.log("👉 가격 범위:", minPrice, "-", maxPrice);
-        fetchFilteredPackages();
+
+        const typeMap = {
+            '뮤지컬': 1,
+            '콘서트': 2,
+            '스포츠': 3
+        };
+
+        const mappedType = typeMap[selectedFilterCategory];
+
+        const filterData = {
+            type: mappedType,
+            min_price: parseInt(minPrice) || 0,
+            max_price: parseInt(maxPrice) || 9999999
+        };
+
+        // SearchFilteredResults 화면으로 이동하면서 필터 정보 전달
+        navigation.navigate('SearchFilteredResults', { filterData });
+
         setShowFilter(false);
     };
-
     const handleResetPlace = () => { // 초기화 버튼
         setSelectedFilterCategory(null);
         setMinPrice('');
@@ -173,8 +190,8 @@ export default function SearchResults() {
                             setSelectedCategory(category);
 
                             const typeMap = {
-                                '콘서트': 1,
-                                '뮤지컬': 2,
+                                '뮤지컬': 1,
+                                '콘서트': 2,
                                 '스포츠': 3,
                             };
                             if (category === '전체') {
