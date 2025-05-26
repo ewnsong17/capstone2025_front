@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+// TripDetails.js
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput, Modal, ScrollView, StyleSheet, Alert, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
-import config from './config';
+import MapView, { Marker } from 'react-native-maps';
+
+const GOOGLE_MAPS_APIKEY = 'AIzaSyCjuHmyhCG-_kxZ8t16MTf0HXLWZxUtGHI';
 
 // 날짜 차이 계산 함수
 const getTripDays = (period) => {
@@ -25,49 +27,16 @@ const formatDate = (date) => {
 
 const TripDetails = () => {
     const route = useRoute();
-    const { tripTitle, tripPeriod } = route.params || {};
+    const { tripTitle, tripPeriod } = route.params;
     const numDays = getTripDays(tripPeriod);
-    const pkgId = route.params?.pkg_id;
 
     const [showModal, setShowModal] = useState(false);
     const [currentDay, setCurrentDay] = useState(null);
     const [newLocation, setNewLocation] = useState('');
-    const [locations, setLocations] = useState({}); // 장소를 각 Day에 맞게 저장
+    const [locations, setLocations] = useState({});
     const [showLocationModal, setShowLocationModal] = useState(false);
     const [currentLocation, setCurrentLocation] = useState(null);
     const [reviewText, setReviewText] = useState('');
-    const [rating, setRating] = useState(0);
-
-    //서버에 리뷰 작성 요청
-    const saveReviewToServer = async () => {
-        try {
-            const response = await fetch(`${config.api.base_url}/reviewAdd`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include', // 로그인 연동 시 필수
-                body: JSON.stringify({
-                    pkg_id: pkgId,     // 현재 패키지 ID
-                    rate: rating,
-                    comment: reviewText
-                })
-            });
-
-            const data = await response.json();
-            console.log("📦 리뷰 저장 응답:", data);
-
-            if (data.result === true) {
-                Alert.alert("리뷰가 저장되었습니다!");
-                setReviewText('');
-                setRating(0);
-                setShowLocationModal(false); // 모달 닫기
-            } else {
-                Alert.alert("리뷰 저장 실패", data.exception || "서버에서 거절되었습니다.");
-            }
-        } catch (error) {
-            console.error("🔥 리뷰 저장 실패:", error);
-            Alert.alert("네트워크 오류", "리뷰 저장 중 문제가 발생했습니다.");
-        }
-    };
 
     const handleAddLocation = () => {
         if (!newLocation || !currentDay) return;
@@ -83,6 +52,11 @@ const TripDetails = () => {
     const handleLocationClick = (location) => {
         setCurrentLocation(location); // 클릭한 장소 설정
         setShowLocationModal(true);
+    };
+
+    const handleSaveReview = () => {
+        Alert.alert("REVIEW", "리뷰가 성공적으로 작성되었습니다.");
+        setShowLocationModal(false);
     };
 
     const handleDeleteLocation = () => {
@@ -105,27 +79,67 @@ const TripDetails = () => {
         return formatDate(date);
     };
 
+    // 지도 초기 위치 상태 (서울)
+    const [initialRegion, setInitialRegion] = useState({
+        latitude: 37.5665,
+        longitude: 126.9780,
+        latitudeDelta: 0.05,
+        longitudeDelta: 0.05,
+    });
+
+
+    useEffect(() => {
+        const getCoordinatesFromTitle = async () => {
+            try {
+                const locationKeyword = tripTitle.replace(/여행/g, '').trim();
+                const response = await fetch(
+                    `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(locationKeyword)}&key=${GOOGLE_MAPS_APIKEY}`
+                );
+                const data = await response.json();
+                if (data.results.length > 0) {
+                    const { lat, lng } = data.results[0].geometry.location;
+                    setInitialRegion({
+                        latitude: lat,
+                        longitude: lng,
+                        latitudeDelta: 0.05,
+                        longitudeDelta: 0.05,
+                    });
+                }
+            } catch (error) {
+                console.error('Geocoding error:', error);
+            }
+        };
+
+        getCoordinatesFromTitle();
+    }, [tripTitle]);
+
     return (
         <ScrollView style={styles.container}>
             <Text style={[styles.title, { backgroundColor: '#E6E6FA' }]}>{tripTitle}</Text>
             <Text style={styles.dayTitle}>{tripPeriod}</Text>
             <View style={styles.separator} />
 
-            <Text style={styles.title}>지도 삽입</Text>
-            <View style={styles.separator} />
+            {/* Google Map */}
+            <View style={styles.mapContainer}>
+                <MapView
+                    style={{ height: 300 }}
+                    region={initialRegion}
+                >
+                    <Marker coordinate={{ latitude: initialRegion.latitude, longitude: initialRegion.longitude }} />
+                </MapView>
+            </View>
 
             {/* 날짜별 Day 생성 */}
             {Array.from({ length: numDays }).map((_, idx) => {
                 const day = `Day ${idx + 1}`;
-                const date = getDateForDay(idx); // 각 Day의 날짜 계산
+                const date = getDateForDay(idx); // 날짜 계산
 
                 return (
                     <View key={day} style={styles.daySection}>
                         <Text style={styles.dayTitle}>
-                            {day} - {date} {/* 날짜 표시 */}
+                            {day} - {date}
                         </Text>
                         <View style={styles.separator} />
-                        {/* 등록된 장소 버튼 */}
                         {locations[day]?.map((location, idx) => (
                             <TouchableOpacity
                                 key={idx}
@@ -182,53 +196,26 @@ const TripDetails = () => {
                     <View style={styles.modalOverlay}>
                         <TouchableWithoutFeedback onPress={() => { }}>
                             <View style={styles.locationModalContent}>
-
-                                <Text style={[styles.locationText, { textAlign: 'center' }]}>
-                                    {currentLocation?.name}
-                                </Text>
-
-                                {/* 📌 평가 텍스트 */}
-                                <Text style={styles.subTitle}>이 장소에 대한 평가</Text>
-
-                                {/* 📝 리뷰 작성 입력창 */}
+                                <Text style={[styles.locationText, { textAlign: 'center' }]}>{currentLocation?.name}</Text>
                                 <TextInput
                                     style={styles.reviewInput}
+                                    placeholder="리뷰를 작성해 주세요"
+                                    multiline={true}
                                     value={reviewText}
                                     onChangeText={setReviewText}
-                                    placeholder="이 장소에 대한 느낌을 남겨보세요"
-                                    multiline
                                 />
 
-                                {/* ⭐ 별점 선택 */}
-                                <View style={styles.starRow}>
-                                    {[1, 2, 3, 4, 5].map((i) => (
-                                        <TouchableOpacity key={i} onPress={() => setRating(i)}>
-                                            <Ionicons
-                                                name={i <= rating ? 'star' : 'star-outline'}
-                                                size={28}
-                                                color="#FFD700"
-                                            />
-                                        </TouchableOpacity>
-                                    ))}
-                                </View>
-
-                                {/* 리뷰 저장 버튼 */}
-                                <TouchableOpacity onPress={saveReviewToServer} style={styles.reviewButton}>
+                                <TouchableOpacity onPress={handleSaveReview} style={styles.reviewButton}>
                                     <Text style={styles.reviewButtonText}>리뷰 작성</Text>
                                 </TouchableOpacity>
-
-                                {/* 삭제 버튼 */}
                                 <TouchableOpacity onPress={handleDeleteLocation} style={styles.deleteButton}>
                                     <Text style={styles.deleteButtonText}>삭제</Text>
                                 </TouchableOpacity>
-
                             </View>
                         </TouchableWithoutFeedback>
                     </View>
                 </TouchableWithoutFeedback>
             </Modal>
-
-
         </ScrollView>
     );
 };
@@ -351,28 +338,25 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 15,
     },
-    subTitle: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginTop: 10,
-        marginBottom: 4,
-        color: '#333',
-    },
-    reviewInput: {
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 6,
-        padding: 10,
-        minHeight: 80,
-        backgroundColor: '#fff',
-        textAlignVertical: 'top',
-    },
-    starRow: {
-        flexDirection: 'row',
-        justifyContent: 'center',
+    mapContainer: {
+        height: 300,
+        borderRadius: 10,
+        overflow: 'hidden',
         marginVertical: 10,
     },
-
+    map: {
+        ...StyleSheet.absoluteFillObject,
+    },
+    reviewInput: {
+        height: 80,
+        borderColor: '#ccc',
+        borderWidth: 1,
+        borderRadius: 8,
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+        marginBottom: 12,
+        textAlignVertical: 'top',  // 멀티라인 입력창에서 텍스트가 위에서부터 시작하게
+    },
 });
 
 export default TripDetails;

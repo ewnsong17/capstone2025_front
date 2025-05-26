@@ -175,6 +175,7 @@ const MyTripLists = ({ navigation }) => {
             });
         }
     };
+    
     useFocusEffect(
         React.useCallback(() => {
             if (!isLoggedIn) {
@@ -202,8 +203,6 @@ const MyTripLists = ({ navigation }) => {
             }
         }, [route.params?.newTrip, isLoggedIn])
     );
-
-
 
     return (
         <ScrollView style={styles.container}>
