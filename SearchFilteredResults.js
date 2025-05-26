@@ -10,6 +10,15 @@ export default function SearchFilteredResults() {
     const { filterData } = route.params;
     const [packageList, setPackageList] = useState([]);
 
+    const formatDate = (dateStr) => {
+        const d = new Date(dateStr);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`; // 원하면 구분자 '.' 등으로 변경 가능
+    };
+
+
     useEffect(() => {
         const fetchFilteredResults = async () => {
             try {
@@ -39,36 +48,37 @@ export default function SearchFilteredResults() {
         fetchFilteredResults();
     }, []);
 
-return (
-    <View style={styles.container}>
-        <Text style={styles.title}>검 색 결 과</Text>
-        <ScrollView style={styles.resultsContainer}>
-            {packageList.length === 0 ? (
-                <View style={{ alignItems: 'center'}}>
-                    <Text style={styles.text}>결과가 없습니다.</Text>
-                </View>
-            ) : (
-                packageList.map((pkg, index) => (
-                    <View key={index} style={styles.packageItem}>
-                        <Text style={styles.text}>{pkg.name}</Text>
-                        {pkg.image && (
-                            <Image
-                                source={{ uri: pkg.image }}
-                                style={styles.packageImage}
-                                resizeMode="cover"
-                            />
-                        )}
-                        <Text>{pkg.country}</Text>
-                        <Text>
-                            {new Date(pkg.start_date).toLocaleDateString()} ~ {new Date(pkg.end_date).toLocaleDateString()}
-                        </Text>
-                        <Text>{pkg.price.toLocaleString()}원</Text>
+    return (
+        <View style={styles.container}>
+            <Text style={styles.title}>검 색 결 과</Text>
+            <ScrollView style={styles.resultsContainer}>
+                {packageList.length === 0 ? (
+                    <View style={{ alignItems: 'center' }}>
+                        <Text style={styles.text}>결과가 없습니다.</Text>
                     </View>
-                ))
-            )}
-        </ScrollView>
-    </View>
-);}
+                ) : (
+                    packageList.map((pkg, index) => (
+                        <View key={index} style={styles.packageItem}>
+                            <Text style={styles.text}>{pkg.name}</Text>
+                            {pkg.image && (
+                                <Image
+                                    source={{ uri: pkg.image }}
+                                    style={styles.packageImage}
+                                    resizeMode="cover"
+                                />
+                            )}
+                            <Text>{pkg.country}</Text>
+                            <Text>
+                                {formatDate(pkg.start_date)} ~ {formatDate(pkg.end_date)}
+                            </Text>
+                            <Text>{pkg.price.toLocaleString()}원</Text>
+                        </View>
+                    ))
+                )}
+            </ScrollView>
+        </View>
+    );
+}
 
 const styles = StyleSheet.create({
     container: {

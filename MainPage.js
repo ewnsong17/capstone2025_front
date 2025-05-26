@@ -5,8 +5,8 @@ import Font from './font';
 import config from './config';
 
 const { width, height } = Dimensions.get('window'); // 화면 크기 가져오기
-const IMAGE_WIDTH = width; // 이미지 너비를 화면 전체로 설정
-const IMAGE_HEIGHT = height * 0.4; // 이미지 높이를 화면 높이의 40%로 설정
+const IMAGE_WIDTH = width * 0.95; // 이미지 너비를 화면 전체로 설정
+const IMAGE_HEIGHT = height * 0.45; // 이미지 높이를 화면 높이의 40%로 설정
 
 const App = ({ setCurrentScreen, selectedDate, returnDate, setReturnDate, selectedPlace, setSelectedDate, setSelectedPlace }) => {
   const fontLoaded = Font();
@@ -114,14 +114,14 @@ const App = ({ setCurrentScreen, selectedDate, returnDate, setReturnDate, select
           </Text>
         </TouchableOpacity>
 
-        {/* DATE 버튼 */}
+        {/* GO TRIP 버튼 */}
         <TouchableOpacity style={styles.button} onPress={() => setShowDatePicker(true)}>
           <Text style={[styles.text, { color: selectedDate ? 'purple' : 'black' }]}>
             {selectedDate ? selectedDate : 'G O  T R I P'}
           </Text>
         </TouchableOpacity>
 
-        {/* RETURN DATE 버튼 */}
+        {/* RETURN 버튼 */}
         <TouchableOpacity style={styles.button} onPress={() => setShowReturnDatePicker(true)}>
           <Text style={[styles.text, { color: returnDate ? 'purple' : 'black' }]}>
             {returnDate ? returnDate : 'R E T U R N'}
@@ -258,6 +258,10 @@ const App = ({ setCurrentScreen, selectedDate, returnDate, setReturnDate, select
         </TouchableOpacity>
       </View>
 
+      <View style={styles.textArea}>
+        <Text style={styles.textAreaText}>recommended packages</Text>
+      </View>
+
       {/* 가로 스크롤 가능한 하단 사진 영역 */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photoScrollContainer}>
         {packageList.map((img, index) => (
@@ -265,8 +269,11 @@ const App = ({ setCurrentScreen, selectedDate, returnDate, setReturnDate, select
             <Image source={{ uri: img }} style={styles.photoImage} resizeMode="cover" />
           </View>
         ))}
-
       </ScrollView>
+
+      <View style={styles.textArea}>
+        <Text style={styles.textDetailText}>You can see more details in the package window</Text>
+      </View>
 
     </ScrollView>
   );
@@ -276,12 +283,11 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     backgroundColor: '#F0F8FF',
-    paddingVertical: 20,
+    paddingTop: 15,
   },
   photoScrollContainer: {
     width: '100%',
-    height: IMAGE_HEIGHT + 20,
-    marginBottom: 30,
+    height: IMAGE_HEIGHT + 10,
   },
   photoArea: {
     width: IMAGE_WIDTH,
@@ -291,7 +297,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 10,
     marginHorizontal: 10,
-    marginTop: 20,
   },
   photoImage: {
     width: '100%',
@@ -299,12 +304,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     resizeMode: 'cover',
   },
-  buttonGroup: {
-    backgroundColor: '#F0F8FF',
-    padding: 15,
-    borderRadius: 20,
-    alignItems: 'center',
-    marginBottom: 20,
+  planButtonContainer: {
+    marginBottom: 10,
   },
   button: {
     width: 350,
@@ -312,16 +313,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#87CEEB',
     alignItems: 'center',
     borderRadius: 15,
-    marginBottom: 10,
+    marginVertical: 5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
-  },
-  buttonText: {
-    color: '#000',
-    fontSize: 18,
-    fontWeight: 'bold',
   },
   iconContainer: {
     alignItems: 'center',
@@ -347,17 +343,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
-  },
-  buttonImage: {
-    width: 50,
-    height: 50,
-    resizeMode: 'contain',
-  },
-  imageButtonText: {
-    color: '#000',
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
   },
   popup: {
     position: 'absolute',
@@ -432,6 +417,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     borderRadius: 5,
     marginTop: 10,
+  },
+  textArea: {
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  textAreaText: {
+    fontSize: 18,
+    fontStyle: 'italic',
+    color: 'skyblue',
+  },
+  textDetailText: {
+    fontSize: 13,
+    fontStyle: 'italic',
+    color: 'gray',
   },
 });
 

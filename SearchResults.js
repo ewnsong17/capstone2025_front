@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, TextInput, Keyboard, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, TextInput, Keyboard, TouchableWithoutFeedback, Linking } from 'react-native';
 import config from './config';
 import { useNavigation } from '@react-navigation/native';
 
@@ -13,54 +13,13 @@ export default function SearchResults() {
     const categories = ['전체', '콘서트', '뮤지컬', '스포츠'];
     const [packageList, setPackageList] = useState([]); // 패키지 리스트 (필터링된 결과를 저장할 상태)
 
-    const fetchFilteredPackages = async () => {
-        if (!selectedFilterCategory || !minPrice || !maxPrice) return;
-
-        const typeMap = {
-            '뮤지컬': 1,
-            '콘서트': 2,
-            '스포츠': 3
-        };
-        const mappedType = typeMap[selectedFilterCategory];
-
-        const requestBody = {
-            type: mappedType,
-            min_price: 0,
-            max_price: 9999999
-        };
-
-        try {
-            console.log("🚀 [fetchFilteredPackages] 서버로 요청 시작");
-            console.log("📤 [fetch] 요청 바디:", JSON.stringify(requestBody));
-
-            const response = await fetch(`${config.api.base_url}/search/results`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(requestBody)
-            });
-
-            const data = await response.json();
-            console.log("🌐 [fetch] 응답 상태 코드:", response.status);
-            console.log("📦 [fetch] 응답 데이터:", data);
-
-            if (data.result) {
-                const updatedList = data.result_list.map(pkg => ({
-                    ...pkg,
-                    image: pkg.image || "http://tkfile.yes24.com/upload2/PerfBlog/202505/20250508/20250508-53433.jpg"
-                }));
-
-                setPackageList(updatedList);
-
-                console.log("✅ [fetch] 패키지 리스트 상태 업데이트 완료");
-            } else {
-                console.warn("❌ [fetch] 서버 에러:", data.exception);
-            }
-        } catch (error) {
-            console.error("🔥 [fetch] API 요청 실패:", error);
-        }
+    const formatDate = (dateStr) => {
+        const d = new Date(dateStr);
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`; // 원하면 구분자 '.' 등으로 변경 가능
     };
-
-
 
     const fetchPackages = async (type) => {
         const requestBody = {
@@ -208,7 +167,6 @@ export default function SearchResults() {
                 ))}
             </View>
 
-
             {/* 선택한 카테고리의 패키지 이미지 출력 */}
             <ScrollView style={styles.resultsContainer}>
                 {packageList.length === 0 ? (
@@ -220,17 +178,23 @@ export default function SearchResults() {
                             <View key={index} style={styles.packageItem}>
                                 <Text style={styles.text}>{pkg.name}</Text>
                                 {pkg.image && (
-                                    <Image
-                                        source={{ uri: pkg.image }}
-                                        style={{ width: '100%', height: 200, borderRadius: 10 }}
-                                        resizeMode="cover"
-                                    />
+                                    <>
+                                        <Image
+                                            source={{ uri: pkg.image }}
+                                            style={{ width: '100%', height: 200, borderRadius: 10, marginVertical: 10 }}
+                                            resizeMode="cover"
+                                        />
+
+                                    </>
                                 )}
                                 <Text>{pkg.country}</Text>
                                 <Text>
-                                    {new Date(pkg.start_date).toLocaleDateString()} ~ {new Date(pkg.end_date).toLocaleDateString()}
+                                    {formatDate(pkg.start_date)} ~ {formatDate(pkg.end_date)}
                                 </Text>
-                                <Text>{pkg.price.toLocaleString()}원</Text>
+                                <Text style={{ marginBottom: 5 }}>{pkg.price.toLocaleString()}원</Text>
+                                <TouchableOpacity onPress={() => Linking.openURL(pkg.url)}>
+                                    <Text style={styles.categoryButton}>상세보기</Text>
+                                </TouchableOpacity>
                             </View>
                         );
                     })
