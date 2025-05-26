@@ -1,9 +1,11 @@
 // TripDetails.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { View, Text, TouchableOpacity, TextInput, Modal, ScrollView, StyleSheet, Alert, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import MapView, { Marker } from 'react-native-maps';
+import config from './config';
+import { LoginContext } from './LoginContext';
 
 const GOOGLE_MAPS_APIKEY = 'AIzaSyCjuHmyhCG-_kxZ8t16MTf0HXLWZxUtGHI';
 
@@ -28,7 +30,7 @@ const formatDate = (date) => {
 
 const TripDetails = () => {
     const route = useRoute();
-    const { tripTitle, tripPeriod } = route.params;
+    const { tripTitle, tripPeriod, tripId } = route.params;
     const numDays = getTripDays(tripPeriod);
 
     const [showModal, setShowModal] = useState(false);
@@ -39,17 +41,67 @@ const TripDetails = () => {
     const [currentLocation, setCurrentLocation] = useState(null);
     const [reviewText, setReviewText] = useState('');
     const [rating, setRating] = useState(0);
+    const { isLoggedIn } = useContext(LoginContext);
 
-    const handleAddLocation = () => {
+    const handleAddLocation = async () => {
         if (!newLocation || !currentDay) return;
 
-        setLocations((prev) => ({
-            ...prev,
-            [currentDay]: prev[currentDay] ? [...prev[currentDay], { name: newLocation, memo: '' }] : [{ name: newLocation, memo: '' }],
-        }));
-        setNewLocation('');
-        setShowModal(false);
+        // 로그인 여부 확인
+        if (!isLoggedIn) {
+            Alert.alert("로그인 필요", "장소를 저장하려면 로그인해야 합니다.");
+            return;
+        }
+
+        const dayIndex = parseInt(currentDay.replace("Day ", "")) - 1;
+        const date = getDateForDay(dayIndex);
+
+        // 데이터 누락
+        if (!tripId || !newLocation || !date) {
+            Alert.alert("입력 오류", "필수 데이터 누락. 콘솔 로그를 확인하세요.");
+            return;
+        }
+
+        console.log("📤 장소 저장 요청", {
+            id: tripId,
+            name: newLocation,
+            place: newLocation,
+            reg_date: date,
+        });
+
+        try {
+            const response = await fetch(`${config.api.base_url}/user/myTripAddPlace`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include', // 세션 기반 인증 유지
+                body: JSON.stringify({
+                    id: tripId,
+                    name: newLocation,
+                    place: newLocation,
+                    reg_date: date,
+                }),
+            });
+
+            const data = await response.json();
+            if (data.result) {
+                setLocations((prev) => ({
+                    ...prev,
+                    [currentDay]: prev[currentDay]
+                        ? [...prev[currentDay], { name: newLocation, memo: '' }]
+                        : [{ name: newLocation, memo: '' }],
+                }));
+                setNewLocation('');
+                setShowModal(false);
+            } else {
+                Alert.alert("❌ 저장 실패", data.exception || "오류 발생");
+            }
+        } catch (err) {
+            console.error("🔥 장소 저장 에러:", err);
+            Alert.alert("서버 오류", "장소 저장 중 문제가 발생했습니다.");
+        }
     };
+
 
     const handleLocationClick = (location) => {
         setCurrentLocation(location); // 클릭한 장소 설정
@@ -72,12 +124,24 @@ const TripDetails = () => {
     };
 
     // 여행 시작 날짜 구하기
-    const startDate = new Date(tripPeriod.split(' ~ ')[0]);
+    let startDate;
+    try {
+        const [start] = tripPeriod?.split(' ~ ') || [];
+        startDate = new Date(start);
+        if (isNaN(startDate)) throw new Error("Invalid date");
+    } catch (err) {
+        console.error("🚨 startDate 생성 실패:", tripPeriod, err);
+        startDate = null;
+    }
 
     // 각 Day에 해당하는 날짜 계산
     const getDateForDay = (dayIndex) => {
+        if (!startDate || isNaN(startDate)) {
+            console.warn("⚠️ 유효하지 않은 startDate");
+            return undefined;
+        }
         const date = new Date(startDate);
-        date.setDate(startDate.getDate() + dayIndex); // 시작일에 dayIndex만큼 더하기
+        date.setDate(date.getDate() + dayIndex);
         return formatDate(date);
     };
 
