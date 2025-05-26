@@ -169,6 +169,7 @@ const MyTripLists = ({ navigation }) => {
         const days = calculateDays(startDate, endDate);
         if (days.length > 0) {
             navigation.navigate('TripDetails', {
+                tripId : trip.id,
                 tripTitle: trip.title,
                 tripPeriod: trip.period,
                 tripDays: days, // 날짜 전달

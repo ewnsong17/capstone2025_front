@@ -30,7 +30,8 @@ const formatDate = (date) => {
 
 const TripDetails = () => {
     const route = useRoute();
-    const { tripTitle, tripPeriod, tripId } = route.params;
+    const { tripId, tripTitle, tripPeriod } = route.params;
+    const [placeList, setPlaceList] = useState([]);
     const numDays = getTripDays(tripPeriod);
 
     const [showModal, setShowModal] = useState(false);
@@ -42,6 +43,7 @@ const TripDetails = () => {
     const [reviewText, setReviewText] = useState('');
     const [rating, setRating] = useState(0);
     const { isLoggedIn } = useContext(LoginContext);
+
 
     const handleAddLocation = async () => {
         if (!newLocation || !currentDay) return;
@@ -57,6 +59,7 @@ const TripDetails = () => {
 
         // 데이터 누락
         if (!tripId || !newLocation || !date) {
+            console.warn('입력 누락:', { tripId, newLocation, date });  // ← 이 라인 추가!
             Alert.alert("입력 오류", "필수 데이터 누락. 콘솔 로그를 확인하세요.");
             return;
         }
@@ -85,12 +88,8 @@ const TripDetails = () => {
 
             const data = await response.json();
             if (data.result) {
-                setLocations((prev) => ({
-                    ...prev,
-                    [currentDay]: prev[currentDay]
-                        ? [...prev[currentDay], { name: newLocation, memo: '' }]
-                        : [{ name: newLocation, memo: '' }],
-                }));
+                // **추가 직후 리스트 새로고침**
+                await fetchTripList();
                 setNewLocation('');
                 setShowModal(false);
             } else {
@@ -103,6 +102,7 @@ const TripDetails = () => {
     };
 
 
+
     const handleLocationClick = (location) => {
         setCurrentLocation(location); // 클릭한 장소 설정
         setShowLocationModal(true);
@@ -113,15 +113,28 @@ const TripDetails = () => {
         setShowLocationModal(false);
     };
 
-    const handleDeleteLocation = () => {
-        if (currentLocation && currentDay) {
-            setLocations((prev) => ({
-                ...prev,
-                [currentDay]: prev[currentDay].filter((loc) => loc.name !== currentLocation.name),
-            }));
+    const handleDeleteLocation = async (placeId) => {
+        try {
+            const response = await fetch(`${config.api.base_url}/user/myTripRemovePlace`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ id: placeId }),
+            });
+            const data = await response.json();
+            if (data.result) {
+                fetchTripList(); // 이제 정상적으로 동작!
+                Alert.alert('삭제 완료', '장소가 삭제되었습니다.');
+            } else {
+                Alert.alert('삭제 실패', '서버 오류 또는 권한 없음');
+            }
+        } catch (err) {
+            console.error("🔥 장소 삭제 에러:", err);
+            Alert.alert('삭제 에러', '서버 통신 중 문제가 발생했습니다.');
         }
-        setShowLocationModal(false);
     };
+
+
 
     // 여행 시작 날짜 구하기
     let startDate;
@@ -179,6 +192,38 @@ const TripDetails = () => {
         getCoordinatesFromTitle();
     }, [tripTitle]);
 
+    const fetchTripList = async () => {
+        try {
+            const response = await fetch(`${config.api.base_url}/user/myTripList`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+            });
+            const data = await response.json();
+            const trip = data.trip_list[tripId];
+            if (trip && trip.place_list) {
+                // 🔥 각 장소 객체에 id를 포함시킴
+                const placeArr = Object.entries(trip.place_list).map(([id, place]) => ({
+                    ...place,
+                    id: Number(id),
+                }));
+                setPlaceList(placeArr);
+            } else {
+                setPlaceList([]);
+            }
+        } catch (err) {
+            console.error('🚨 여행 정보 불러오기 실패:', err);
+            setPlaceList([]);
+        }
+    };
+
+    useEffect(() => {
+        fetchTripList();
+    }, [tripId]);
+
+
+
+
     return (
         <ScrollView style={styles.container}>
             <Text style={[styles.title, { backgroundColor: '#E6E6FA' }]}>{tripTitle}</Text>
@@ -199,6 +244,13 @@ const TripDetails = () => {
             {Array.from({ length: numDays }).map((_, idx) => {
                 const day = `Day ${idx + 1}`;
                 const date = getDateForDay(idx); // 날짜 계산
+                const placesForDay = placeList.filter(place => {
+                    const regDateObj = new Date(place.reg_date);
+                    const localYMD = regDateObj.getFullYear() + '-' +
+                        String(regDateObj.getMonth() + 1).padStart(2, '0') + '-' +
+                        String(regDateObj.getDate()).padStart(2, '0');
+                    return localYMD === date;
+                });
 
                 return (
                     <View key={day} style={styles.daySection}>
@@ -206,15 +258,20 @@ const TripDetails = () => {
                             {day} - {date}
                         </Text>
                         <View style={styles.separator} />
-                        {locations[day]?.map((location, idx) => (
-                            <TouchableOpacity
-                                key={idx}
-                                onPress={() => handleLocationClick(location)}
-                                style={styles.locationButton}
-                            >
-                                <Text style={styles.locationButtonText}>{location.name}</Text>
-                            </TouchableOpacity>
-                        ))}
+                        {placesForDay.length === 0 ? (
+                            <Text style={{ color: '#aaa' }}>등록된 장소가 없습니다.</Text>
+                        ) : (
+                            placesForDay.map((location, idx) => (
+                                <TouchableOpacity
+                                    key={idx}
+                                    onPress={() => handleLocationClick(location)}
+                                    style={styles.locationButton}
+                                >
+                                    <Text style={styles.locationButtonText}>{location.name}</Text>
+                                </TouchableOpacity>
+                            ))
+                        )}
+
                         <TouchableOpacity
                             onPress={() => {
                                 setCurrentDay(day);
@@ -287,7 +344,17 @@ const TripDetails = () => {
                                 <TouchableOpacity onPress={handleSaveReview} style={styles.reviewButton}>
                                     <Text style={styles.reviewButtonText}>리뷰 작성</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity onPress={handleDeleteLocation} style={styles.deleteButton}>
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        if (!currentLocation?.id) {
+                                            Alert.alert('삭제 오류', '장소 ID가 없습니다.');
+                                            return;
+                                        }
+                                        handleDeleteLocation(currentLocation.id);
+                                        setShowLocationModal(false);
+                                    }}
+                                    style={styles.deleteButton}
+                                >
                                     <Text style={styles.deleteButtonText}>삭제</Text>
                                 </TouchableOpacity>
                             </View>
