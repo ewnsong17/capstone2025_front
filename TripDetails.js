@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput, Modal, ScrollView, StyleSheet, Alert, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { useRoute } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import MapView, { Marker } from 'react-native-maps';
 
 const GOOGLE_MAPS_APIKEY = 'AIzaSyCjuHmyhCG-_kxZ8t16MTf0HXLWZxUtGHI';
@@ -37,6 +38,7 @@ const TripDetails = () => {
     const [showLocationModal, setShowLocationModal] = useState(false);
     const [currentLocation, setCurrentLocation] = useState(null);
     const [reviewText, setReviewText] = useState('');
+    const [rating, setRating] = useState(0);
 
     const handleAddLocation = () => {
         if (!newLocation || !currentDay) return;
@@ -205,6 +207,19 @@ const TripDetails = () => {
                                     onChangeText={setReviewText}
                                 />
 
+                                {/* ⭐ 별점 선택 */}
+                                <View style={styles.starRow}>
+                                    {[1, 2, 3, 4, 5].map((i) => (
+                                        <TouchableOpacity key={i} onPress={() => setRating(i)}>
+                                            <Ionicons
+                                                name={i <= rating ? 'star' : 'star-outline'}
+                                                size={28}
+                                                color="#FFD700"
+                                            />
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+
                                 <TouchableOpacity onPress={handleSaveReview} style={styles.reviewButton}>
                                     <Text style={styles.reviewButtonText}>리뷰 작성</Text>
                                 </TouchableOpacity>
@@ -356,6 +371,11 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         marginBottom: 12,
         textAlignVertical: 'top',  // 멀티라인 입력창에서 텍스트가 위에서부터 시작하게
+    },
+    starRow: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        marginVertical: 10,
     },
 });
 
