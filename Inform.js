@@ -101,6 +101,40 @@ export default function MyPage({ onClose, isVisible }) {
         }
     };
 
+    const handleLogout = async () => {
+        Alert.alert(
+            '로그아웃',
+            '정말 로그아웃하시겠습니까?',
+            [
+                { text: '취소', style: 'cancel' },
+                {
+                    text: '로그아웃',
+                    onPress: async () => {
+                        try {
+                            console.log("🚀 로그아웃 요청 시작");
+                            const response = await axios.post(`${config.api.base_url}/user/logout`);
+                            console.log("✅ 로그아웃 응답:", response.data);
+                            if (response.data.result) {
+                                setIsLoggedIn(false);
+                                setUser({});
+                                setName('');
+                                setBirthDate('');
+                                Alert.alert('로그아웃 되었습니다.');
+                            } else {
+                                Alert.alert('오류', '로그아웃 요청이 실패했습니다.');
+                            }
+                        } catch (err) {
+                            console.error('🔥 로그아웃 에러:', err);
+                            Alert.alert('서버 오류', '로그아웃 중 문제가 발생했습니다.');
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+
+
     // 회원가입 버튼 클릭 시 SignUp.js 페이지로 이동
     const handleSignUpClick = () => {
         navigation.navigate('SignUp'); // SignUp.js로 이동
@@ -182,14 +216,22 @@ export default function MyPage({ onClose, isVisible }) {
 
                     {/* 로그인/회원가입 버튼 */}
                     <View style={styles.authContainer}>
-                        <View style={styles.authButtonWrapper}>
-                            <TouchableOpacity style={styles.authButton} onPress={handleLoginClick}>
-                                <Text style={styles.authButtonText}>Log In</Text>
+                        {isLoggedIn ? (
+                            // ✅ 로그인된 경우 → 로그아웃 버튼만 중앙에 배치
+                            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                                <Text style={styles.authButtonText}>Log Out</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.authButton} onPress={handleSignUpClick}>
-                                <Text style={styles.authButtonText}>Sign Up</Text>
-                            </TouchableOpacity>
-                        </View>
+                        ) : (
+                            // ✅ 로그인 안 된 경우 → 로그인 & 회원가입 버튼 나란히
+                            <View style={styles.authButtonWrapper}>
+                                <TouchableOpacity style={styles.authButton} onPress={handleLoginClick}>
+                                    <Text style={styles.authButtonText}>Log In</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.authButton} onPress={handleSignUpClick}>
+                                    <Text style={styles.authButtonText}>Sign Up</Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
                     </View>
 
                     {/* 로그인 팝업 */}
@@ -277,7 +319,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#000000',
     },
-    profileBirthday:{
+    profileBirthday: {
         fontSize: 12,
         color: '#808080',
         marginTop: 3,
@@ -385,4 +427,14 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#fff',
     },
+    logoutButton: {
+        backgroundColor: '#87CEEB',
+        height: 40,
+        width: 120,
+        borderRadius: 5,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+
+
 });
