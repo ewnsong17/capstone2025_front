@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { Alert } from 'react-native';
 import {
   View,
   Text,
@@ -15,6 +16,8 @@ import {
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useNavigation } from '@react-navigation/native';
 import config from './config';
+import { LoginContext } from './LoginContext';
+
 
 export default function AITravel() {
   const navigation = useNavigation(); // 추가
@@ -28,6 +31,9 @@ export default function AITravel() {
   const [taste, setTaste] = useState('');
   const [aiResponse, setAiResponse] = useState('');
   const [loading, setLoading] = useState(false);
+  const { user } = useContext(LoginContext); // ✅ 로그인 상태 확인용
+  const text = aiResponse;
+
 
   const formatDate = (date) => {
     const yyyy = date.getFullYear();
@@ -99,6 +105,221 @@ export default function AITravel() {
     }
   };
 
+  const extractDateRange = (text) => {
+    // (1) "2025-05-27 ~ 2025-05-31" 형식
+    const match = text.match(/\((\d{4}-\d{2}-\d{2}) ~ (\d{4}-\d{2}-\d{2})\)/);
+    if (match) {
+      console.log('✅ 날짜(yyyy-mm-dd ~ yyyy-mm-dd) 추출됨:', match[1], match[2]);
+      return { start_date: match[1], end_date: match[2] };
+    }
+
+    // (2) "2025년 5월 27일" 형식
+    const korDateMatch = text.match(/(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일/);
+    if (korDateMatch) {
+      const [_, y, m, d] = korDateMatch;
+      const date = `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`;
+      console.log('✅ 한글 날짜 추출됨:', date);
+      return { start_date: date, end_date: date };
+    }
+
+    // (3) 본문에 날짜가 흩어져 있을 경우 → 여러 개 추출 후 범위 계산
+    const allDates = [...text.matchAll(/\d{4}-\d{2}-\d{2}/g)].map(m => m[0]);
+    if (allDates.length >= 1) {
+      const sorted = allDates.sort();
+      const start_date = sorted[0];
+      const end_date = sorted[sorted.length - 1];
+      console.log(`✅ 복수 날짜 추출됨: 출발일=${start_date}, 도착일=${end_date}`);
+      return { start_date, end_date };
+    }
+
+    // (4) 완전 실패
+    console.error('❌ 날짜 추출 실패: 어떤 형식도 매칭되지 않음');
+    throw new Error('날짜를 추출할 수 없습니다. 형식을 확인하세요.');
+  };
+
+  const extractPlaceDatePairs = (text) => {
+    const sectionRegex = /\*\*(\d{4}-\d{2}-\d{2})\s*\(.+?\)\**([\s\S]*?)(?=\*\*\d{4}-\d{2}-\d{2}|\Z)/g;
+    const itemRegex = /\*\*(.+?)\*\*/g;
+    const pairs = [];
+
+    let sectionMatch;
+    while ((sectionMatch = sectionRegex.exec(text)) !== null) {
+      const date = sectionMatch[1];
+      const sectionBody = sectionMatch[2];
+
+      let itemMatch;
+      while ((itemMatch = itemRegex.exec(sectionBody)) !== null) {
+        const placeName = itemMatch[1].trim();
+        if (!/^\d{4}-\d{2}-\d{2}/.test(placeName) && !/^\d+일차/.test(placeName)) {
+          pairs.push({ place: placeName, date });
+        }
+      }
+    }
+
+    // ✅ 대체 플랜: 섹션이 없으면 전체 텍스트에서 장소만 추출하여 단일 날짜에 묶기
+    if (pairs.length === 0) {
+      console.warn("⚠️ 날짜 구간 없음 → 장소만 단일 날짜에 묶어서 처리");
+
+      const dateMatch = text.match(/\d{4}-\d{2}-\d{2}/);
+      const fallbackDate = dateMatch ? dateMatch[0] : '2025-01-01';
+
+      let itemMatch;
+      while ((itemMatch = itemRegex.exec(text)) !== null) {
+        const placeName = itemMatch[1].trim();
+        if (!/^\d+일차/.test(placeName)) {
+          pairs.push({ place: placeName, date: fallbackDate });
+        }
+      }
+    }
+
+    if (pairs.length === 0) {
+      throw new Error("날짜별 장소 추출 실패");
+    }
+
+    console.log("✅ 날짜-장소 추출 결과:", pairs);
+    return pairs;
+  };
+
+
+  const autoSaveFromAIResponse = async () => {
+    const cityValue = city.trim();
+    console.log("🚨 함수 진입");
+
+    if (!user) {
+      console.log("⛔️ 로그인 안 됨");
+      Keyboard.dismiss();
+      setTimeout(() => {
+        Alert.alert('⚠️ 로그인 필요', 'AI 추천 여행을 저장하려면 먼저 로그인하세요.', [
+          { text: '확인', style: 'cancel' },
+        ]);
+      }, 100);
+      return;
+    }
+
+    console.log("✅ 로그인 확인됨");
+    const text = aiResponse;
+    console.log('📥 aiResponse 원문:\n', text);
+
+    let dateRange, placeDatePairs;
+    try {
+      dateRange = extractDateRange(text);
+      placeDatePairs = extractPlaceDatePairs(text);
+      console.log('✅ 파싱 성공:', dateRange, placeDatePairs);
+    } catch (parseError) {
+      console.error('❌ 파싱 중 오류 발생:', parseError.message);
+      Alert.alert('❌ 파싱 실패', parseError.message);
+      return;
+    }
+
+    const { start_date, end_date } = dateRange;
+
+    const tripName = `${cityValue} 여행`; 
+    const country = cityValue;
+    try {
+      const match = text.match(/##\s*(.+?)(?:추천|여행)/);
+      if (match && match[1]) {
+        tripName = match[1].trim();
+      }
+      console.log('✅ tripName 추출:', tripName);
+    } catch {
+      console.warn('⚠️ tripName 파싱 실패, 기본값 사용');
+    }
+
+    const type = 1; // 의미 없는 값, 외래키 제약 통과용
+
+    let tripId;
+
+    try {
+      console.log(`📤 여행 등록 요청 시작 → ${start_date} ~ ${end_date}, 국가: ${country}, 이름: ${tripName}`);
+      const tripRes = await fetch(`${config.api.base_url}/user/myTripAdd`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          name: tripName,
+          type,
+          start_date,
+          end_date,
+          country,
+        }),
+      });
+
+      const tripRaw = await tripRes.text();
+      console.log('📦 여행 등록 응답 내용:', tripRaw);
+
+      let tripData;
+      try {
+        tripData = JSON.parse(tripRaw);
+      } catch {
+        throw new Error('❌ 여행 등록 응답을 JSON으로 파싱할 수 없습니다.');
+      }
+
+      if (!tripData.result) {
+        throw new Error('❌ 여행 추가 실패 (result=false)');
+      }
+
+      console.log('✅ 여행 등록 성공');
+
+      // 최신 trip ID 조회
+      console.log('📤 여행 ID 조회 요청 시작');
+      const listRes = await fetch(`${config.api.base_url}/user/myTripList`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+
+      const listRaw = await listRes.text();
+      console.log('📦 여행 리스트 응답 내용:', listRaw);
+
+      let listData;
+      try {
+        listData = JSON.parse(listRaw);
+      } catch {
+        throw new Error('❌ 여행 리스트 응답을 JSON으로 파싱할 수 없습니다.');
+      }
+
+      const latestTripId = Math.max(...Object.keys(listData.trip_list).map(Number));
+      tripId = latestTripId;
+      console.log('✅ 등록된 trip ID:', tripId);
+    } catch (err) {
+      console.error('❌ 여행 저장 중 오류 발생:', err);
+      Alert.alert('❌ 오류 발생', err.message);
+      return;
+    }
+
+    try {
+      for (const { place, date } of placeDatePairs) {
+        const cleanPlace = place.replace(/[:：]/g, '').trim().slice(0, 20);
+
+        console.log(`📦 장소 저장 시도 → [${cleanPlace}] @ [${date}]`);
+        const placeRes = await fetch(`${config.api.base_url}/user/myTripAddPlace`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            id: tripId,
+            name : cleanPlace,
+            place: cleanPlace,
+            reg_date: date,
+          }),
+        });
+
+        const placeRaw = await placeRes.text();
+        console.log(`📥 장소 저장 응답 [${cleanPlace}]:`, placeRaw);
+      }
+
+
+      console.log('🎉 모든 장소 저장 완료');
+      Alert.alert('✅ 저장 완료', 'AI 추천 여행이 자동으로 등록되었습니다!', [
+        { text: '확인', onPress: () => navigation.navigate('MyTripLists') },
+      ]);
+    } catch (err) {
+      console.error('❌ 장소 저장 중 오류 발생:', err);
+      Alert.alert('❌ 장소 저장 실패', err.message);
+    }
+  };
+
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <KeyboardAvoidingView
@@ -120,10 +341,7 @@ export default function AITravel() {
 
               {/* 저장 버튼을 ScrollView 안쪽으로 옮김 */}
               {aiResponse ? (
-                <TouchableOpacity
-                  style={styles.saveButton}
-                  onPress={() => navigation.navigate('MyTripLists')}
-                >
+                <TouchableOpacity style={styles.saveButton} onPress={autoSaveFromAIResponse}>
                   <Text style={styles.saveButtonText}>내 여행으로 저장</Text>
                 </TouchableOpacity>
               ) : null}
