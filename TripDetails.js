@@ -6,7 +6,8 @@ import { Ionicons } from '@expo/vector-icons';
 import MapView, { Marker } from 'react-native-maps';
 import config from './config';
 import { LoginContext } from './LoginContext';
-
+import axios from 'axios';
+import api from './api';
 const GOOGLE_MAPS_APIKEY = 'AIzaSyCjuHmyhCG-_kxZ8t16MTf0HXLWZxUtGHI';
 
 // 날짜 차이 계산 함수
@@ -43,8 +44,6 @@ const TripDetails = () => {
     const [reviewText, setReviewText] = useState('');
     const [rating, setRating] = useState(0);
     const { isLoggedIn } = useContext(LoginContext);
-
-
     const handleAddLocation = async () => {
         if (!newLocation || !currentDay) return;
 
@@ -101,16 +100,68 @@ const TripDetails = () => {
         }
     };
 
-
-
     const handleLocationClick = (location) => {
         setCurrentLocation(location); // 클릭한 장소 설정
         setShowLocationModal(true);
     };
 
+    const saveReviewToServer = async () => {
+        if (!isLoggedIn) {
+            Alert.alert("로그인 필요", "리뷰를 작성하려면 로그인해야 합니다.");
+            console.warn("⚠️ 로그인 상태 아님: 리뷰 저장 중단");
+            return;
+        }
+
+        if (!currentLocation?.id || !reviewText.trim()) {
+            Alert.alert('입력 누락', '리뷰 내용이 비어있거나 장소 ID가 없습니다.');
+            console.warn("⚠️ 유효하지 않은 입력:", { id: currentLocation?.id, comment: reviewText.trim() });
+            return;
+        }
+
+        const payload = {
+            id: currentLocation.id, // ✅ 이제 'id' 필드를 사용해야 함
+            rate: rating,
+            comment: reviewText.trim(),
+            type: "mine",
+        };
+
+        // 👉 요청 전 로그
+        console.log("📤 리뷰 저장 요청 (axios)", payload);
+
+        try {
+            const response = await api.post(`${config.api.base_url}/user/reviewAdd`, payload);
+
+            // 👉 응답 로그
+            console.log("📥 리뷰 저장 응답 (axios):", response.data);
+
+            if (response.data.result) {
+                Alert.alert("✅ 저장 완료", "리뷰가 성공적으로 저장되었습니다.");
+                setShowLocationModal(false);
+                setReviewText('');
+                setRating(0);
+            } else {
+                console.warn("❌ 저장 실패 응답:", response.data);
+                Alert.alert("❌ 저장 실패", response.data.exception || "서버에서 오류가 발생했습니다.");
+            }
+        } catch (error) {
+            // 👉 에러 상세 로그
+            if (error.response) {
+                console.error("🔥 서버 응답 에러:", {
+                    status: error.response.status,
+                    headers: error.response.headers,
+                    data: error.response.data,
+                });
+            } else if (error.request) {
+                console.error("🚫 요청 보냈지만 응답 없음:", error.request);
+            } else {
+                console.error("❗ 요청 설정 중 오류:", error.message);
+            }
+
+            Alert.alert("서버 오류", "리뷰 저장 중 문제가 발생했습니다.");
+        }
+    };
     const handleSaveReview = () => {
-        Alert.alert("REVIEW", "리뷰가 성공적으로 작성되었습니다.");
-        setShowLocationModal(false);
+        saveReviewToServer();
     };
 
     const handleDeleteLocation = async (placeId) => {

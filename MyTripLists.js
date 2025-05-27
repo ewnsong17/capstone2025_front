@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, Alert, ScrollView} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, Alert, ScrollView } from 'react-native';
 import { SwipeListView } from 'react-native-swipe-list-view';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
 import { useEffect } from 'react';
@@ -116,19 +116,55 @@ const MyTripLists = ({ navigation }) => {
 
     //슬라이드 시 여행 삭제 가능 함수
     const handleDeleteTrip = async (tripToDelete) => {
-        const deleted = await deleteTripFromServer(tripToDelete.id);
-        if (!deleted) {
-            Alert.alert('삭제 실패', '서버에서 여행을 삭제하지 못했습니다.');
-            return;
-        }
+        try {
+            // 🔍 삭제 전 여행 상세 조회
+            const response = await fetch(`${config.api.base_url}/user/myTripList`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+            });
 
-        if (tripToDelete.type === 'past') {
-            setTrips((prev) => prev.filter((trip) => trip.id !== tripToDelete.id));
-        } else {
-            setUpcomingTrips((prev) => prev.filter((trip) => trip.id !== tripToDelete.id));
-        }
+            const data = await response.json();
+            const placeList = data.trip_list?.[tripToDelete.id]?.place_list;
 
-        console.log("✅ 로컬 상태에서도 삭제 완료");
+            if (placeList && Object.keys(placeList).length > 0) {
+                // ❌ 장소가 존재하면 삭제 중단 + 안내
+                Alert.alert(
+                    '삭제 불가',
+                    '이 여행에는 등록된 장소가 있습니다.\n먼저 해당 장소들을 삭제해주세요.',
+                    [
+                        {
+                            text: '장소 확인',
+                            onPress: () => navigation.navigate('TripDetails', {
+                                tripId: tripToDelete.id,
+                                tripTitle: tripToDelete.title,
+                                tripPeriod: tripToDelete.period,
+                            }),
+                        },
+                        { text: '취소', style: 'cancel' },
+                    ]
+                );
+                return;
+            }
+
+            // ✅ 장소가 없을 경우만 삭제 진행
+            const deleted = await deleteTripFromServer(tripToDelete.id);
+            if (!deleted) {
+                Alert.alert('삭제 실패', '서버에서 여행을 삭제하지 못했습니다.');
+                return;
+            }
+
+            if (tripToDelete.type === 'past') {
+                setTrips((prev) => prev.filter((trip) => trip.id !== tripToDelete.id));
+            } else {
+                setUpcomingTrips((prev) => prev.filter((trip) => trip.id !== tripToDelete.id));
+            }
+
+            console.log("✅ 로컬 상태에서도 삭제 완료");
+        } catch (error) {
+            console.error("🔥 삭제 전 검사 실패:", error);
+            Alert.alert("삭제 오류", "삭제 전 데이터를 확인하는 도중 오류가 발생했습니다.");
+        }
     };
 
 
@@ -169,14 +205,14 @@ const MyTripLists = ({ navigation }) => {
         const days = calculateDays(startDate, endDate);
         if (days.length > 0) {
             navigation.navigate('TripDetails', {
-                tripId : trip.id,
+                tripId: trip.id,
                 tripTitle: trip.title,
                 tripPeriod: trip.period,
                 tripDays: days, // 날짜 전달
             });
         }
     };
-    
+
     useFocusEffect(
         React.useCallback(() => {
             if (!isLoggedIn) {

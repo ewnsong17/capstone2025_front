@@ -180,6 +180,21 @@ export default function AITravel() {
     return pairs;
   };
 
+  function trimByByte(str, maxBytes = 200) {
+    const encoder = new TextEncoder(); // UTF-8 기본 설정
+    let bytes = 0;
+    let result = '';
+
+    for (const char of str) {
+      const byteLength = encoder.encode(char).length;
+      if (bytes + byteLength > maxBytes) break;
+      bytes += byteLength;
+      result += char;
+    }
+
+    return result;
+  }
+
 
   const autoSaveFromAIResponse = async () => {
     const cityValue = city.trim();
@@ -287,31 +302,45 @@ export default function AITravel() {
       return;
     }
 
+    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
     try {
       for (const { place, date } of placeDatePairs) {
-        const cleanPlace = [...place.replace(/[:：]/g, '').trim()].slice(0, 20).join('');
+        try {
+          const asciiSafe = (str) =>
+            str.replace(/\s*\(.*?\)\s*/g, '')      // 괄호 제거
+              .replace(/[^\p{L}\p{N}\s]/gu, '')   // 특수문자 제거
+              .trim();
+          const cleanPlace = trimByByte(asciiSafe(place), 200);
+          const regDateFormatted = `${date} 00:00:00`;
 
-        console.log(`📦 장소 저장 시도 → [${cleanPlace}] @ [${date}]`);
-        await new Promise(res => setTimeout(res, 300)); // 300ms 딜레이 추가
-
-        const placeRes = await fetch(`${config.api.base_url}/user/myTripAddPlace`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({
+          const payload = {
             id: tripId,
             name: cleanPlace,
             place: cleanPlace,
-            reg_date: date,
-          }),
-        });
+            reg_date: regDateFormatted,
+          };
 
-        const placeRaw = await placeRes.text();
-        console.log(`📥 장소 저장 응답 [${cleanPlace}]:`, placeRaw);
+          console.log(`📦 장소 저장 시도 → [${cleanPlace}] @ [${regDateFormatted}]`);
+          console.log("📦 장소 저장 시도 바디:", payload);
+
+          const placeRes = await fetch(`${config.api.base_url}/user/myTripAddPlace`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(payload),
+          });
+
+          const placeRaw = await placeRes.text();
+          console.log(`📥 장소 저장 응답 [${cleanPlace}]:`, placeRaw);
+
+          await delay(1000); // 💡 요청 간 간격 유지
+
+        } catch (err) {
+          console.error(`❌ 장소 저장 실패 [${place}] (${date})`, err.message);
+        }
       }
 
-
-
+      // ⬇ 이게 없었음! 저장 끝나고 사용자에게 알림!
       console.log('🎉 모든 장소 저장 완료');
       Alert.alert('✅ 저장 완료', 'AI 추천 여행이 자동으로 등록되었습니다!', [
         { text: '확인', onPress: () => navigation.navigate('MyTripLists') },
@@ -320,7 +349,8 @@ export default function AITravel() {
       console.error('❌ 장소 저장 중 오류 발생:', err);
       Alert.alert('❌ 장소 저장 실패', err.message);
     }
-  };
+  }
+
 
 
   return (

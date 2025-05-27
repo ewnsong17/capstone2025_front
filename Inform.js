@@ -63,10 +63,13 @@ export default function MyPage({ onClose, isVisible }) {
         }
 
         try {
-            const response = await axios.post(`${config.api.base_url}/user/login`, {
-                email: email,
-                password: password,
-            });
+            const response = await axios.post(
+                `${config.api.base_url}/user/login`,
+                {
+                    email: email,
+                    password: password,
+                }
+            );
 
             if (response.data.result) { // 로그인 성공
                 setIsLoggedIn(true);

@@ -103,6 +103,7 @@ export default function App() {
                                     <Stack.Screen name="TripReservation" component={TripReservation} />
                                     <Stack.Screen name="MyReview" component={MyReview} />
                                     <Stack.Screen name="SearchFilteredResults" component={SearchFilteredResults} />
+                                    <Stack.Screen name="SearchResults" component={SearchResults} />
                                 </Stack.Navigator>
                             </NavigationContainer>
                         </ReviewProvider>
