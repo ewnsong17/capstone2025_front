@@ -54,7 +54,7 @@ const MyTripLists = ({ navigation }) => {
                         const start = new Date(trip.start_date);
                         const end = new Date(trip.end_date);
 
-                        const period = `${start.toISOString().slice(0, 10)} ~ ${end.toISOString().slice(0, 10)}`;
+                        const period = `${toKSTDate(trip.start_date)} ~ ${toKSTDate(trip.end_date)}`;
 
                         const parsedTrip = {
                             id: key,
@@ -83,6 +83,12 @@ const MyTripLists = ({ navigation }) => {
 
         fetchTripList();
     }, []);
+
+    const toKSTDate = (dateStr) => {
+        const date = new Date(dateStr);
+        date.setHours(date.getHours() + 9); // KST 보정
+        return date.toISOString().slice(0, 10); // 'YYYY-MM-DD'
+    };
 
     const route = useRoute();
     const [trips, setTrips] = useState([

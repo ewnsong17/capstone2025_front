@@ -27,8 +27,10 @@ function MainApp({ navigation }) {
     const [currentScreen, setCurrentScreen] = useState('main');
     const [showMyPage, setShowMyPage] = useState(false);
     const [selectedDate, setSelectedDate] = useState(null);
-    const [selectedPlace, setSelectedPlace] = useState(null);
     const [returnDate, setReturnDate] = useState(null);
+    const [originPlace, setOriginPlace] = useState(null);
+    const [destinationPlace, setDestinationPlace] = useState(null);
+
 
     return (
         <View style={styles.container}>
@@ -42,11 +44,13 @@ function MainApp({ navigation }) {
                 <MainPage
                     setCurrentScreen={setCurrentScreen}
                     selectedDate={selectedDate}
-                    selectedPlace={selectedPlace}
                     returnDate={returnDate}
                     setSelectedDate={setSelectedDate}
-                    setSelectedPlace={setSelectedPlace}
                     setReturnDate={setReturnDate}
+                    originPlace={originPlace}
+                    setOriginPlace={setOriginPlace}
+                    destinationPlace={destinationPlace}
+                    setDestinationPlace={setDestinationPlace}
                 />
             )}
 

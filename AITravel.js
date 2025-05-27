@@ -138,14 +138,17 @@ export default function AITravel() {
   };
 
   const extractPlaceDatePairs = (text) => {
-    const sectionRegex = /\*\*(\d{4}-\d{2}-\d{2})\s*\(.+?\)\**([\s\S]*?)(?=\*\*\d{4}-\d{2}-\d{2}|\Z)/g;
+    const sectionRegex = /\*\*(\d{4}-\d{2}-\d{2})\s*\([^)]+\)\*\*([\s\S]*?)(?=(\s*\*\*\d{4}-\d{2}-\d{2}|\#\# 마지막 날|\Z))/g;
     const itemRegex = /\*\*(.+?)\*\*/g;
     const pairs = [];
 
     let sectionMatch;
+    console.log("🔥 sectionMatch 결과 확인:");
     while ((sectionMatch = sectionRegex.exec(text)) !== null) {
       const date = sectionMatch[1];
       const sectionBody = sectionMatch[2];
+      console.log("📌 섹션 날짜:", date);
+      console.log("📌 섹션 내용:", sectionBody);
 
       let itemMatch;
       while ((itemMatch = itemRegex.exec(sectionBody)) !== null) {
@@ -156,7 +159,24 @@ export default function AITravel() {
       }
     }
 
-    // ✅ 대체 플랜: 섹션이 없으면 전체 텍스트에서 장소만 추출하여 단일 날짜에 묶기
+    // ✅ 마지막 날 따로 처리
+    const lastDayMatch = text.match(/## 마지막 날[\s\S]*?\*\*(\d{4}-\d{2}-\d{2})\s*\([^)]+\)\*\*([\s\S]*)/);
+    if (lastDayMatch) {
+      const lastDate = lastDayMatch[1];
+      const lastBody = lastDayMatch[2];
+      console.log("📌 마지막 날 날짜:", lastDate);
+      console.log("📌 마지막 날 내용:", lastBody);
+
+      let itemMatch;
+      while ((itemMatch = itemRegex.exec(lastBody)) !== null) {
+        const placeName = itemMatch[1].trim();
+        if (!/^\d+일차/.test(placeName)) {
+          pairs.push({ place: placeName, date: lastDate });
+        }
+      }
+    }
+
+    // ✅ fallback: 섹션이 하나도 없을 경우 (실패 대비)
     if (pairs.length === 0) {
       console.warn("⚠️ 날짜 구간 없음 → 장소만 단일 날짜에 묶어서 처리");
 
@@ -226,7 +246,16 @@ export default function AITravel() {
       return;
     }
 
+
     const { start_date, end_date } = dateRange;
+
+    // 🔧 하루 밀리지 않도록 오전 9시(KST 기준)를 포함해 보냄
+    const toSafeDatetime = (dateStr) => {
+      return `${dateStr} 09:00:00`;  // UTC로 저장돼도 여전히 해당 날짜 유지됨
+    };
+
+    const fixedStartDate = toSafeDatetime(start_date); // 예: '2025-05-29 09:00:00'
+    const fixedEndDate = toSafeDatetime(end_date);     // 예: '2025-05-31 09:00:00'
 
     const tripName = `${cityValue} 여행`;
     const country = cityValue;
@@ -253,8 +282,8 @@ export default function AITravel() {
         body: JSON.stringify({
           name: tripName,
           type,
-          start_date,
-          end_date,
+          start_date: fixedStartDate,
+          end_date: fixedEndDate,
           country,
         }),
       });

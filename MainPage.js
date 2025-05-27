@@ -9,7 +9,7 @@ const { width, height } = Dimensions.get('window'); // 화면 크기 가져오�
 const IMAGE_WIDTH = width * 0.95; // 이미지 너비를 화면 전체로 설정
 const IMAGE_HEIGHT = height * 0.45; // 이미지 높이를 화면 높이의 40%로 설정
 
-const App = ({ setCurrentScreen, selectedDate, returnDate, setReturnDate, selectedPlace, setSelectedDate, setSelectedPlace }) => {
+const MainPage = ({ setCurrentScreen, selectedDate, returnDate, setReturnDate, originPlace, destinationPlace, setSelectedDate, setOriginPlace, setDestinationPlace }) => {
   const fontLoaded = Font();
   const [showPopup, setShowPopup] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -18,6 +18,7 @@ const App = ({ setCurrentScreen, selectedDate, returnDate, setReturnDate, select
   const [showReturnDatePicker, setShowReturnDatePicker] = useState(false);
   const [reopenGoDatePicker, setReopenGoDatePicker] = useState(false);
   const [reopenReturnDatePicker, setReopenReturnDatePicker] = useState(false);
+  const [popupType, setPopupType] = useState(null); // 'origin' 또는 'destination'
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -73,19 +74,26 @@ const App = ({ setCurrentScreen, selectedDate, returnDate, setReturnDate, select
   }
 
   const handlePopupClose = () => {
-    setShowPopup(false); // 팝업 닫기
+    setPopupType(null); // 팝업 닫기
   };
 
-  const handlePlaceSelect = (place) => {
-    setSelectedPlace(place); // 선택된 장소 설정
-    setShowPopup(false); // 팝업 닫기
+  const handlePlaceSelect = (place, type) => {
+    if (type === 'origin') {
+      setOriginPlace(place);
+    } else {
+      setDestinationPlace(place);
+    }
+    setPopupType(null); // 팝업 닫기
   };
 
   const handleResetPlace = () => {
-    setSelectedPlace(null); // 장소 초기화
-    setShowPopup(false);
+    if (popupType === 'origin') {
+      setOriginPlace('');
+    } else if (popupType === 'destination') {
+      setDestinationPlace('');
+    }
+    setPopupType(null); // 팝업 닫기
   };
-
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -103,15 +111,19 @@ const App = ({ setCurrentScreen, selectedDate, returnDate, setReturnDate, select
         {/* PLACE 버튼 */}
         <TouchableOpacity
           style={styles.button}
-          onPress={() => setShowPopup(true)} // PLACE 버튼 클릭 시 팝업 열기
+          onPress={() => setPopupType('origin')}
         >
-          <Text
-            style={[
-              styles.text,
-              { color: selectedPlace ? 'purple' : 'black' },
-            ]}
-          >
-            {selectedPlace ? selectedPlace : 'P L A C E'} {/* 선택된 장소가 있으면 그걸 표시 */}
+          <Text style={[styles.text, { color: originPlace ? 'purple' : 'black' }]}>
+            {originPlace || 'O R I G I N'}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => setPopupType('destination')}
+        >
+          <Text style={[styles.text, { color: destinationPlace ? 'purple' : 'black' }]}>
+            {destinationPlace || 'D E S T I N A T I O N'}
           </Text>
         </TouchableOpacity>
 
@@ -135,7 +147,9 @@ const App = ({ setCurrentScreen, selectedDate, returnDate, setReturnDate, select
           mode="date"
           maximumDate={returnDate ? new Date(returnDate) : undefined} // 오는 날 이전까지만 선택 가능
           onConfirm={(date) => {
-            const selectedGo = date.toISOString().split('T')[0];
+            const selectedGo = date.getFullYear() + '-' +
+              String(date.getMonth() + 1).padStart(2, '0') + '-' +
+              String(date.getDate()).padStart(2, '0');
             setSelectedDate(selectedGo);
             setShowDatePicker(false);
           }}
@@ -147,7 +161,9 @@ const App = ({ setCurrentScreen, selectedDate, returnDate, setReturnDate, select
           mode="date"
           minimumDate={selectedDate ? new Date(selectedDate) : undefined}
           onConfirm={(date) => {
-            const selectedReturn = date.toISOString().split('T')[0];
+            const selectedReturn = date.getFullYear() + '-' +
+              String(date.getMonth() + 1).padStart(2, '0') + '-' +
+              String(date.getDate()).padStart(2, '0');
             setReturnDate(selectedReturn);
             setShowReturnDatePicker(false);
           }}
@@ -156,53 +172,53 @@ const App = ({ setCurrentScreen, selectedDate, returnDate, setReturnDate, select
       </View>
 
       {/* PLACE 팝업 */}
-      {showPopup && (
+      {popupType && (
         <View style={styles.popup}>
           <Text style={styles.popupTitle}>choose a place to TRAVEL</Text>
 
           <View style={styles.placeGroup}>
             <Text style={styles.groupTitle}>국내</Text>
-            <TouchableOpacity style={styles.popupButton} onPress={() => handlePlaceSelect('서울')}>
+            <TouchableOpacity style={styles.popupButton} onPress={() => handlePlaceSelect('서울', popupType)}>
               <Text style={styles.popupText}>서울</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.popupButton} onPress={() => handlePlaceSelect('인천')}>
+            <TouchableOpacity style={styles.popupButton} onPress={() => handlePlaceSelect('인천', popupType)}>
               <Text style={styles.popupText}>인천</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.popupButton} onPress={() => handlePlaceSelect('대전')}>
+            <TouchableOpacity style={styles.popupButton} onPress={() => handlePlaceSelect('대전', popupType)}>
               <Text style={styles.popupText}>대전</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.popupButton} onPress={() => handlePlaceSelect('대구')}>
+            <TouchableOpacity style={styles.popupButton} onPress={() => handlePlaceSelect('대구', popupType)}>
               <Text style={styles.popupText}>대구</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.popupButton} onPress={() => handlePlaceSelect('광주')}>
+            <TouchableOpacity style={styles.popupButton} onPress={() => handlePlaceSelect('광주', popupType)}>
               <Text style={styles.popupText}>광주</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.popupButton} onPress={() => handlePlaceSelect('부산')}>
+            <TouchableOpacity style={styles.popupButton} onPress={() => handlePlaceSelect('부산', popupType)}>
               <Text style={styles.popupText}>부산</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.popupButton} onPress={() => handlePlaceSelect('제주')}>
+            <TouchableOpacity style={styles.popupButton} onPress={() => handlePlaceSelect('제주', popupType)}>
               <Text style={styles.popupText}>제주</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.placeGroup}>
             <Text style={styles.groupTitle}>해외</Text>
-            <TouchableOpacity style={styles.popupButton} onPress={() => handlePlaceSelect('미국')}>
+            <TouchableOpacity style={styles.popupButton} onPress={() => handlePlaceSelect('미국', popupType)}>
               <Text style={styles.popupText}>미국</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.popupButton} onPress={() => handlePlaceSelect('프랑스')}>
+            <TouchableOpacity style={styles.popupButton} onPress={() => handlePlaceSelect('프랑스', popupType)}>
               <Text style={styles.popupText}>프랑스</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.popupButton} onPress={() => handlePlaceSelect('영국')}>
+            <TouchableOpacity style={styles.popupButton} onPress={() => handlePlaceSelect('영국', popupType)}>
               <Text style={styles.popupText}>영국</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.popupButton} onPress={() => handlePlaceSelect('이탈리아')}>
+            <TouchableOpacity style={styles.popupButton} onPress={() => handlePlaceSelect('이탈리아', popupType)}>
               <Text style={styles.popupText}>이탈리아</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.popupButton} onPress={() => handlePlaceSelect('독일')}>
+            <TouchableOpacity style={styles.popupButton} onPress={() => handlePlaceSelect('독일', popupType)}>
               <Text style={styles.popupText}>독일</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.popupButton} onPress={() => handlePlaceSelect('일본')}>
+            <TouchableOpacity style={styles.popupButton} onPress={() => handlePlaceSelect('일본', popupType)}>
               <Text style={styles.popupText}>일본</Text>
             </TouchableOpacity>
           </View>
@@ -214,25 +230,20 @@ const App = ({ setCurrentScreen, selectedDate, returnDate, setReturnDate, select
       )}
 
       {/* 팝업 이외 영역 클릭 시 팝업 닫기 */}
-      {showPopup && (
+      {popupType && (
         <TouchableOpacity style={styles.overlay} onPress={handlePopupClose} />
       )}
 
       {/* 항공 및 숙소 예약 */}
       <TouchableOpacity
-        style={[
-          styles.buttonWithoutBack,
-          (!selectedPlace || !selectedDate) && { opacity: 0.5 }
-        ]}
-        disabled={!selectedPlace || !selectedDate || !returnDate}
+        style={[styles.buttonWithoutBack, (!originPlace || !destinationPlace || !selectedDate || !returnDate) && { opacity: 0.5 }]}
+        disabled={!originPlace || !destinationPlace || !selectedDate || !returnDate}
         onPress={() => setCurrentScreen('TripReservation')}
       >
         <Image
-          source={
-            !selectedPlace || !selectedDate || !returnDate
-              ? require('./assets/plane.png')
-              : require('./assets/plane_fill.png')
-          }
+          source={(!originPlace || !destinationPlace || !selectedDate || !returnDate)
+            ? require('./assets/plane.png')
+            : require('./assets/plane_fill.png')}
           style={styles.searchImage}
         />
       </TouchableOpacity>
@@ -250,23 +261,23 @@ const App = ({ setCurrentScreen, selectedDate, returnDate, setReturnDate, select
       </View>
 
       {/* 하단 배너 */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photoScrollContainer}>
-      {packageList.map((img, index) => (
-        <TouchableOpacity
-          key={index}
-          style={styles.photoArea}
-          onPress={() => navigation.navigate('SearchResults')}
-        >
-          <Image source={{ uri: img }} style={styles.photoImage} resizeMode="cover" />
-        </TouchableOpacity>
-      ))}
-    </ScrollView>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photoScrollContainer}>
+        {packageList.map((img, index) => (
+          <TouchableOpacity
+            key={index}
+            style={styles.photoArea}
+            onPress={() => navigation.navigate('SearchResults')}
+          >
+            <Image source={{ uri: img }} style={styles.photoImage} resizeMode="cover" />
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
 
       <View style={styles.textArea}>
         <Text style={styles.textDetailText}>You can see more details in the package window</Text>
       </View>
 
-    </ScrollView>
+    </ScrollView >
   );
 };
 
@@ -426,4 +437,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default App;
+export default MainPage;
