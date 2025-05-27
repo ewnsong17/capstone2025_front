@@ -35,11 +35,47 @@ export const searchFlights = async (origin, destination, departureDate, accessTo
     return await res.json();
 };
 
-export const searchHotels = async (cityCode, checkIn, checkOut, accessToken) => {
-    const res = await fetch(`https://test.api.amadeus.com/v2/shopping/hotel-offers?cityCode=${cityCode}&checkInDate=${checkIn}&checkOutDate=${checkOut}`, {
-        headers: {
-            'Authorization': `Bearer ${accessToken}`
+// amadeus.js
+
+export async function searchHotels(cityCode, checkInDate, checkOutDate, token) {
+    const hotelListUrl = `https://test.api.amadeus.com/v1/reference-data/locations/hotels/by-city?cityCode=${cityCode}`;
+    const headers = { Authorization: `Bearer ${token}` };
+
+    try {
+        console.log('📡 호텔 ID 요청 시작:', hotelListUrl);  // 추가
+
+        const hotelListResponse = await fetch(hotelListUrl, { headers });
+        const hotelListData = await hotelListResponse.json();
+
+        console.log('📥 hotelListData:', hotelListData);  // 추가
+
+        if (!hotelListData.data || hotelListData.data.length === 0) {
+            console.warn('⚠️ 호텔 ID 응답 없음');
+            return { data: [] };
         }
-    });
-    return await res.json();
-};
+
+        const limitedHotelIds = hotelListData.data
+            .filter(h => h.hotelId && typeof h.hotelId === 'string')
+            .slice(0, 20)
+            .map(h => h.hotelId)
+            .join(',');
+
+        if (!limitedHotelIds) {
+            console.warn('❌ 유효한 hotelId가 없습니다.');
+            return { data: [] };
+        }
+
+        const hotelOffersUrl = `https://test.api.amadeus.com/v3/shopping/hotel-offers?hotelIds=${limitedHotelIds}&checkInDate=${checkInDate}&checkOutDate=${checkOutDate}&adults=1`;
+        console.log('📡 호텔 Offer 요청 시작:', hotelOffersUrl);  // 추가
+
+        const hotelOffersResponse = await fetch(hotelOffersUrl, { headers });
+        const hotelOffersData = await hotelOffersResponse.json();
+
+        console.log('✅ 호텔 Offer 응답:', hotelOffersData);  // 추가
+
+        return hotelOffersData;
+    } catch (error) {
+        console.error('🔥 searchHotels 에러 발생:', error);
+        return { data: [] };
+    }
+}

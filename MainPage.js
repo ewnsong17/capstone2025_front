@@ -238,7 +238,14 @@ const MainPage = ({ setCurrentScreen, selectedDate, returnDate, setReturnDate, o
       <TouchableOpacity
         style={[styles.buttonWithoutBack, (!originPlace || !destinationPlace || !selectedDate || !returnDate) && { opacity: 0.5 }]}
         disabled={!originPlace || !destinationPlace || !selectedDate || !returnDate}
-        onPress={() => setCurrentScreen('TripReservation')}
+        onPress={() =>
+          navigation.navigate('TripReservation', {
+            originPlace,
+            destinationPlace,
+            selectedDate,
+            returnDate,
+          })
+        }
       >
         <Image
           source={(!originPlace || !destinationPlace || !selectedDate || !returnDate)

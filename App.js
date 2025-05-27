@@ -59,8 +59,9 @@ function MainApp({ navigation }) {
             {currentScreen === 'TripReservation' && (
                 <TripReservation
                     selectedDate={selectedDate}
-                    selectedPlace={selectedPlace}
                     returnDate={returnDate}
+                    originPlace={originPlace}
+                    destinationPlace={destinationPlace}
                 />
             )}
             {currentScreen === 'MyReview' && <MyReview />}
