@@ -213,7 +213,7 @@ export default function AITravel() {
 
     const { start_date, end_date } = dateRange;
 
-    const tripName = `${cityValue} 여행`; 
+    const tripName = `${cityValue} 여행`;
     const country = cityValue;
     try {
       const match = text.match(/##\s*(.+?)(?:추천|여행)/);
@@ -289,16 +289,18 @@ export default function AITravel() {
 
     try {
       for (const { place, date } of placeDatePairs) {
-        const cleanPlace = place.replace(/[:：]/g, '').trim().slice(0, 20);
+        const cleanPlace = [...place.replace(/[:：]/g, '').trim()].slice(0, 20).join('');
 
         console.log(`📦 장소 저장 시도 → [${cleanPlace}] @ [${date}]`);
+        await new Promise(res => setTimeout(res, 300)); // 300ms 딜레이 추가
+
         const placeRes = await fetch(`${config.api.base_url}/user/myTripAddPlace`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
           body: JSON.stringify({
             id: tripId,
-            name : cleanPlace,
+            name: cleanPlace,
             place: cleanPlace,
             reg_date: date,
           }),
@@ -307,6 +309,7 @@ export default function AITravel() {
         const placeRaw = await placeRes.text();
         console.log(`📥 장소 저장 응답 [${cleanPlace}]:`, placeRaw);
       }
+
 
 
       console.log('🎉 모든 장소 저장 완료');

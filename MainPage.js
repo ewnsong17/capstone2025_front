@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import Font from './font';
 import config from './config';
@@ -17,13 +18,13 @@ const App = ({ setCurrentScreen, selectedDate, returnDate, setReturnDate, select
   const [showReturnDatePicker, setShowReturnDatePicker] = useState(false);
   const [reopenGoDatePicker, setReopenGoDatePicker] = useState(false);
   const [reopenReturnDatePicker, setReopenReturnDatePicker] = useState(false);
-
+  const navigation = useNavigation();
 
   useEffect(() => {
     fetch(`${config.api.base_url}/main/banners`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application.json'
+        'Content-Type': 'application/json'
       },
     })
       .then(res => res.json())
@@ -236,20 +237,6 @@ const App = ({ setCurrentScreen, selectedDate, returnDate, setReturnDate, select
         />
       </TouchableOpacity>
 
-      {/* 초기화 버튼 */}
-      {/*
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => {
-          setSelectedPlace(null);
-          setSelectedDate(null);
-          setReturnDate(null);
-        }}
-      >
-        <Text style={styles.resetHint}>선택 초기화</Text>
-      </TouchableOpacity>
-      */}
-
       {/* ai와 같이 여행계획 세우기 */}
       <View style={styles.planButtonContainer}>
         <TouchableOpacity style={styles.button} onPress={() => setCurrentScreen('AITravel')}>
@@ -262,14 +249,18 @@ const App = ({ setCurrentScreen, selectedDate, returnDate, setReturnDate, select
         <Text style={styles.textAreaText}>recommended packages</Text>
       </View>
 
-      {/* 가로 스크롤 가능한 하단 사진 영역 */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photoScrollContainer}>
-        {packageList.map((img, index) => (
-          <View key={index} style={styles.photoArea}>
-            <Image source={{ uri: img }} style={styles.photoImage} resizeMode="cover" />
-          </View>
-        ))}
-      </ScrollView>
+      {/* 하단 배너 */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.photoScrollContainer}>
+      {packageList.map((img, index) => (
+        <TouchableOpacity
+          key={index}
+          style={styles.photoArea}
+          onPress={() => navigation.navigate('SearchResults')}
+        >
+          <Image source={{ uri: img }} style={styles.photoImage} resizeMode="cover" />
+        </TouchableOpacity>
+      ))}
+    </ScrollView>
 
       <View style={styles.textArea}>
         <Text style={styles.textDetailText}>You can see more details in the package window</Text>
