@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, FlatList, Image } from 'react-native';
+import { getAmadeusAccessToken, searchFlights, searchHotels } from './amadeus';
 
 const flightData = [
     { id: '1', name: '항공편 A', date: '2025-05-06', location: '서울', price: 100000 },
@@ -28,7 +29,7 @@ const hotelData = [
     { id: '20', name: '호텔 J', date: '2025-05-15', location: '제주', price: 92000 },
 ];
 
-export default function TripReservation({ selectedDate, selectedPlace }) {
+export default function TripReservation({ selectedDate, selectedPlace, returnDate }) {
     const [currentTab, setCurrentTab] = useState('flight');
     const [sortedData, setSortedData] = useState(flightData);
     const [sortAsc, setSortAsc] = useState(true);
@@ -45,6 +46,24 @@ export default function TripReservation({ selectedDate, selectedPlace }) {
         setSortedData(sorted);
         setSortAsc(!sortAsc);
     };
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const token = await getAmadeusAccessToken();
+            if (!token) return;
+
+            const flightResults = await searchFlights("ICN", "NRT", selectedDate, token); // 예: 인천 → 도쿄
+            const hotelResults = await searchHotels("TYO", selectedDate, returnDate, token);
+
+            console.log("✈️ 항공 검색 결과:", flightResults);
+            console.log("🏨 숙소 검색 결과:", hotelResults);
+            // 이 데이터들을 상태로 반영해서 UI 출력하면 됨
+        };
+
+        if (selectedDate && selectedPlace && returnDate) {
+            fetchData();
+        }
+    }, [selectedDate, selectedPlace, returnDate]);
 
     return (
         <View style={styles.container}>

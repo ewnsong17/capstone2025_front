@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, Modal, TextInput, StyleSheet, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { useReview } from './ReviewContext';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function MyReview() {
     const { reviews, fetchReviewsFromServer, updateReview, deleteReview } = useReview();
@@ -38,15 +39,31 @@ export default function MyReview() {
     const renderItem = ({ item }) => {
         if (!item) return null;
 
+        const title = item.place || '장소';
+        const formattedDate = new Date(item.reg_date).toISOString().split('T')[0];
+
         return (
             <TouchableOpacity style={styles.card} onPress={() => openModal(item)}>
-                <Text style={styles.cardText}>{item.country} | {item.name}</Text>
-                <Text style={styles.cardContent} numberOfLines={2} ellipsizeMode="tail">
-                    {item.comment}
-                </Text>
+                <View style={styles.headerRow}>
+                    <Text style={styles.cardTitle}>{title}</Text>
+
+                    <View style={styles.starIconRow}>
+                        {[1, 2, 3, 4, 5].map((i) => (
+                            <Ionicons
+                                key={i}
+                                name={i <= item.rate ? 'star' : 'star-outline'}
+                                size={18}
+                                color="#FFD700"
+                            />
+                        ))}
+                    </View>
+                </View>
+
+                <Text style={styles.cardContent}>{item.comment}</Text>
+                <Text style={styles.cardDate}>{formattedDate}</Text>
             </TouchableOpacity>
         );
-    };
+    }
 
     useEffect(() => {
         fetchReviewsFromServer();
@@ -57,8 +74,8 @@ export default function MyReview() {
             <Text style={styles.title}>내 리뷰</Text>
 
             <FlatList
-                data={reviews.filter(r => r !== null)}
-                keyExtractor={(item) => item.id.toString()}
+                data={Object.values(reviews).filter(r => r !== null)}
+                keyExtractor={(item) => item.id?.toString() || Math.random().toString()}
                 renderItem={renderItem}
                 contentContainerStyle={styles.list}
             />
@@ -69,7 +86,9 @@ export default function MyReview() {
                         <View style={styles.modalOverlay}>
                             <TouchableWithoutFeedback onPress={() => { }}>
                                 <View style={styles.modalContent}>
-                                    <Text style={styles.modalTitle}>{selectedReview.title}</Text>
+                                    <Text style={styles.modalTitle}>
+                                        {selectedReview.place || '리뷰'}
+                                    </Text>
                                     <TextInput
                                         style={styles.modalInput}
                                         multiline
@@ -160,4 +179,21 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         borderRadius: 8,
     },
+    headerRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between', // ← 이걸로 오른쪽으로 이동됨
+        alignItems: 'center',
+        marginBottom: 4,
+    },
+    cardTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    starIconRow: {
+        flexDirection: 'row',
+        gap: 2,
+        alignItems: 'center',
+    },
+
+
 });
