@@ -60,7 +60,7 @@ const MyTripLists = ({ navigation }) => {
                             id: key,
                             title: trip.name,
                             period,
-                            withAI: false, // 필요한 경우 설정
+                            withAI: trip.type === 1, // 필요한 경우 설정
                             type: end < now ? 'past' : 'upcoming',
                         };
 
@@ -273,7 +273,11 @@ const MyTripLists = ({ navigation }) => {
                                     <View style={styles.iconContainer}>
                                         <Text style={styles.tripTitleText}>{item.title}</Text>
                                         {item.withAI && (
-                                            <Image source={require('./assets/aiIcon.png')} style={styles.aiIcon} />
+                                            <Image
+                                                source={require('./assets/aiIcon.png')}
+                                                style={styles.aiIcon}
+                                                resizeMode="contain"
+                                            />
                                         )}
                                     </View>
                                     <Text style={styles.tripPeriod}>{item.period}</Text>
@@ -290,7 +294,7 @@ const MyTripLists = ({ navigation }) => {
                                 </TouchableOpacity>
                             </View>
                         )}
-                        scrollEnabled={false} // ✅ 추가
+                        scrollEnabled={false}
                         rightOpenValue={-75}
                         disableRightSwipe
                         contentContainerStyle={{ paddingBottom: 100 }}
@@ -313,7 +317,11 @@ const MyTripLists = ({ navigation }) => {
                                 <View style={styles.iconContainer}>
                                     <Text style={styles.tripTitleText}>{item.title}</Text>
                                     {item.withAI && (
-                                        <Image source={require('./assets/aiIcon.png')} style={styles.aiIcon} />
+                                        <Image
+                                            source={require('./assets/aiIcon.png')}
+                                            style={styles.aiIcon}
+                                            resizeMode="contain"
+                                        />
                                     )}
                                 </View>
                                 <Text style={styles.tripPeriod}>{item.period}</Text>
@@ -330,7 +338,7 @@ const MyTripLists = ({ navigation }) => {
                             </TouchableOpacity>
                         </View>
                     )}
-                    scrollEnabled={false} // ✅ 이것도 추가
+                    scrollEnabled={false}
                     rightOpenValue={-75}
                     disableRightSwipe
                     contentContainerStyle={{ paddingBottom: 100 }}
