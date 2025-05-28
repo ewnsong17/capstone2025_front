@@ -379,36 +379,32 @@ export default function AITravel() {
       Alert.alert('❌ 장소 저장 실패', err.message);
     }
   }
-
-
-
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <KeyboardAvoidingView
-        style={styles.container}
+        style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
       >
-        <View style={styles.container}>
-          <ScrollView
-            style={{ flex: 1 }}
-            contentContainerStyle={styles.scrollContent}
-            keyboardShouldPersistTaps="handled"
-          >
-            <View style={styles.responseContainer}>
-              <Text style={styles.responseLabel}>추천 여행 계획</Text>
-              <View style={styles.aiBox}>
-                <Text style={styles.responseText}>{aiResponse}</Text>
-              </View>
-
-              {/* 저장 버튼을 ScrollView 안쪽으로 옮김 */}
-              {aiResponse ? (
-                <TouchableOpacity style={styles.saveButton} onPress={autoSaveFromAIResponse}>
-                  <Text style={styles.saveButtonText}>내 여행으로 저장</Text>
-                </TouchableOpacity>
-              ) : null}
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={[styles.scrollContent, { flexGrow: 1 }]}
+          keyboardShouldPersistTaps="handled"
+          nestedScrollEnabled={true}
+          removeClippedSubviews={true}
+        >
+          <View style={styles.responseContainer}>
+            <Text style={styles.responseLabel}>추천 여행 계획</Text>
+            <View style={styles.aiBox}>
+              <Text style={styles.responseText}>{aiResponse}</Text>
             </View>
-          </ScrollView>
+
+            {aiResponse ? (
+              <TouchableOpacity style={styles.saveButton} onPress={autoSaveFromAIResponse}>
+                <Text style={styles.saveButtonText}>내 여행으로 저장</Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
 
           <View style={styles.bottomBar}>
             <View style={styles.pickerRow}>
@@ -473,6 +469,7 @@ export default function AITravel() {
                 onChangeText={setTaste}
               />
             </View>
+
             <Button
               title={loading ? '응답 중...' : 'S E N D'}
               onPress={sendToAI}
@@ -480,7 +477,7 @@ export default function AITravel() {
               color="purple"
             />
           </View>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </TouchableWithoutFeedback>
   );
