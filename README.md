@@ -1,5 +1,11 @@
 ### 캡스톤 프로젝트 2025 (백엔드)
 
+* 시연 영상
+* [![시연 영상](image2.png)](https://youtube.com/shorts/37vlsblHvTU)
+
+
+
+
 * 목적
 
   1. 프로젝트 정의
