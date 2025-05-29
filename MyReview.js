@@ -40,7 +40,8 @@ export default function MyReview() {
         if (!item) return null;
 
         const title = item.place || '장소';
-        const formattedDate = new Date(item.reg_date).toISOString().split('T')[0];
+        const date = new Date(item.reg_date);
+        const formattedDate = date.toISOString().split('T')[0];
 
         return (
             <TouchableOpacity style={styles.card} onPress={() => openModal(item)}>

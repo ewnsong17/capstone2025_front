@@ -39,7 +39,7 @@ const NewTripPlans = ({ navigation, route }) => {
 
         const requestBody = {
             name: `${destination} 여행`,
-            type: 1,
+            type: 2,
             start_date: formatDate(startDate),
             end_date: formatDate(endDate),
             country: destination || 'Korea'
