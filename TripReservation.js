@@ -56,7 +56,6 @@ export default function TripReservation({ route }) {
         }
     };
 
-    const EUR_TO_KRW = 1450; // 실제 환율에 맞게 조정 가능
     useEffect(() => {
         const originCode = cityToIATACode[originPlace];
         const destinationCode = cityToIATACode[destinationPlace];
@@ -68,7 +67,7 @@ export default function TripReservation({ route }) {
             if (currentTab === 'flight') {
                 const results = await searchFlights(originCode, destinationCode, selectedDate, token);
                 console.log("✈️ 항공 검색 결과:", results);
-                setFlightResults(results.data);
+                setFlightResults(results?.data || [])
             } else {
                 const results = await searchHotels(destinationCode, selectedDate, returnDate, token);
                 console.log("🏨 숙소 검색 결과:", results);
@@ -142,8 +141,9 @@ export default function TripReservation({ route }) {
                             const arriveIATA = lastSegment?.arrival?.iataCode || '알 수 없음';
                             const departureDate = firstSegment?.departure?.at?.split('T')[0] || '알 수 없음';
                             const airlineCode = item.validatingAirlineCodes?.[0] || '알 수 없음';
-                            const priceEUR = parseFloat(item.price?.total || 0);
-                            const priceKRW = Math.round(priceEUR * EUR_TO_KRW).toLocaleString();
+                            const currency = item.price?.currency || '알 수 없음';
+                            const price = parseFloat(item.price?.total || 0);
+
 
                             return (
                                 <View style={styles.card}>
@@ -151,7 +151,7 @@ export default function TripReservation({ route }) {
                                     <Text>출발 공항: {departIATA}</Text>
                                     <Text>도착 공항: {arriveIATA}</Text>
                                     <Text>출발 날짜: {departureDate}</Text>
-                                    <Text>가격: 약 {priceKRW}원</Text>
+                                    <Text>가격: {price.toLocaleString()} {currency}</Text>
                                 </View>
                             );
                         }}
@@ -178,10 +178,9 @@ export default function TripReservation({ route }) {
                                     .join(' ')
                                 || '주소 없음';
 
-                            const priceEUR = parseFloat(item.offers?.[0]?.price?.total || 0);
-                            const priceKRW = isNaN(priceEUR)
-                                ? 'N/A'
-                                : Math.round(priceEUR * EUR_TO_KRW).toLocaleString();
+                            const offer = item.offers?.[0];
+                            const price = parseFloat(offer?.price?.total || 0);
+                            const currency = offer?.price?.currency || '알 수 없음';
 
                             const imageUrl = item.hotel?.media?.[0]?.uri;
 
@@ -204,11 +203,11 @@ export default function TripReservation({ route }) {
                                     )}
                                     <Text style={styles.cardTitle}>{name}</Text>
                                     <Text>{address}</Text>
-                                    <Text>가격: {priceKRW !== 'N/A' ? `약 ${priceKRW}원` : '예약 불가'}</Text>
+                                    <Text>가격: {price.toLocaleString()} {currency}</Text>
                                 </View>
                             );
                         }}
-                    />
+                    /> 
                 ) : (
                     <Text style={{ textAlign: 'center', marginTop: 20, color: 'gray' }}>
                         조건에 맞는 숙소가 없습니다.

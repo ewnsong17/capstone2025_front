@@ -1,7 +1,7 @@
 // config.js
 const config = {
   api: {
-    ip: '192.168.171.126',
+    ip: '192.168.0.156',
     port: 3000,
   }
 };
